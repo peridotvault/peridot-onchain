@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "peridot_onchain_backend": {
+      "main": "src/peridot_onchain_backend/main.mo",
+      "type": "motoko"
+    },
+    "peridot_onchain_frontend": {
+      "dependencies": [
+        "peridot_onchain_backend"
+      ],
+      "source": [
+        "src/peridot_onchain_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "peridot_onchain_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
