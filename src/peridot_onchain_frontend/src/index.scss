@@ -1,37 +1,42 @@
-body {
-  font-family: sans-serif;
-  font-size: 1.5rem;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-img {
-  max-width: 50vw;
-  max-height: 25vw;
-  display: block;
-  margin: auto;
-}
+:root {
+    --background_primary: #1c1f1d;
+    --background_secondary: #121714;
+    --text: #e0e4e4;
+  
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  
+    background: #1c1f1d;
+    color: var(--text);
+  
+    font-size: 0.85rem /* 14px */;
+    // line-height: 1.5rem;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-form {
-  display: flex;
-  justify-content: center;
-  gap: 0.5em;
-  flex-flow: row wrap;
-  max-width: 40vw;
-  margin: auto;
-  align-items: baseline;
-}
-
-button[type="submit"] {
-  padding: 5px 20px;
-  margin: 10px auto;
-  float: right;
-}
-
-#greeting {
-  margin: 10px auto;
-  padding: 10px 60px;
-  border: 1px solid #222;
-}
-
-#greeting:empty {
-  display: none;
-}
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #121714;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #434343;
+    border-radius: 20px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #505050;
+  }
+  
