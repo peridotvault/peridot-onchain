@@ -44,40 +44,60 @@ export const LandingPage = () => {
                         <p className='text-fluid-h2 leading-fluid-h2 font-bold max-md:text-center text-end bg-clip-text text-transparent bg-gradient-to-br from-blue-200 to-green-200'>Featured Projects</p>
                     </div>
                 </div>
-                <div className="flex flex-col gap-14 items-start">
+                <div className="flex flex-col items-start text-fluid-lg">
                     {/* nomor 1  */}
                     <div className=" w-full flex justify-center ">
-                        <div className="container flex gap-20 text-start py-14 px-8">
+                        <div className="container flex gap-20 text-start items-center py-14 px-8">
                             <div className="w-1/2 flex flex-col gap-5">
                                 <p className='text-fluid-h3 font-semibold leading-fluid-h3'>Game Vault</p>
-                                <p className='text-fluid-base'>Lorem ipsum dolor sit amet consectetur adipisicing elit. A, soluta. Quidem cumque culpa placeat nostrum! Quasi ad tenetur non illum. Lorem ipsum dolor, sit amet consectetur adipisicing elit. Mollitia omnis rerum odit ducimus quasi nam inventore quidem adipisci quibusdam fugiat!</p>
+                                <p className=''>Game Vault is a digital game distribution platform that facilitates game discovery, download management, and library organization, while offering developers publishing tools and players efficient game management and social features.</p>
                             </div>
                             <div className="w-1/2 aspect-[4/3] flex">
-                                <div className="bg-green-500 w-full h-full"></div>
+                                <div className="w-full h-full rounded-2xl overflow-hidden">
+                                    <img src="./assets/GameVault.png" alt="" />
+                                </div>
                             </div>
                         </div>
                     </div>
                     {/* nomor 2  */}
-                    <div className="bg-white w-full flex justify-center ">
-                        <div className="container flex gap-20 text-start  text-black py-14 px-8">
+                    <div className=" w-full flex justify-center ">
+                        <div className="container flex gap-20 text-start items-center  py-14 px-8">
                             <div className="w-1/2 flex flex-col gap-5">
-                                <p className='text-fluid-h3 font-semibold leading-fluid-h3'>Game Vault</p>
-                                <p className='text-fluid-base'>Lorem ipsum dolor sit amet consectetur adipisicing elit. A, soluta. Quidem cumque culpa placeat nostrum! Quasi ad tenetur non illum. Lorem ipsum dolor, sit amet consectetur adipisicing elit. Mollitia omnis rerum odit ducimus quasi nam inventore quidem adipisci quibusdam fugiat!</p>
+                                <p className='text-fluid-h3 font-semibold leading-fluid-h3'>Native Wallet</p>
+                                <p className=''>The Native Peridot Wallet is a self-custody wallet offering user control over private keys and advanced post-quantum security, supporting multiple cryptocurrencies and NFTs, with seamless integration for game purchases and trading.</p>
                             </div>
                             <div className="w-1/2 aspect-[4/3] flex">
-                                <div className="bg-green-500 w-full h-full"></div>
+                                <div className="w-full h-full rounded-2xl overflow-hidden">
+                                    <img src="./assets/NativeWallet.png" alt="" />
+                                </div>
                             </div>
                         </div>
                     </div>
                     {/* nomor 3  */}
                     <div className=" w-full flex justify-center ">
-                        <div className="container flex gap-20 text-start py-14 px-8">
+                        <div className="container flex gap-20 text-start items-center py-14 px-8">
                             <div className="w-1/2 flex flex-col gap-5">
-                                <p className='text-fluid-h3 font-semibold leading-fluid-h3'>Game Vault</p>
-                                <p className='text-fluid-base'>Lorem ipsum dolor sit amet consectetur adipisicing elit. A, soluta. Quidem cumque culpa placeat nostrum! Quasi ad tenetur non illum. Lorem ipsum dolor, sit amet consectetur adipisicing elit. Mollitia omnis rerum odit ducimus quasi nam inventore quidem adipisci quibusdam fugiat!</p>
+                                <p className='text-fluid-h3 font-semibold leading-fluid-h3'>Item Marketplace</p>
+                                <p className=''>The Item Marketplace features a real-time trading system with auction and fixed price listings, NFT integration for minting and collection management, and advanced item management tools, including search filters and price tracking, along with trading tools for market analytics and alerts.</p>
                             </div>
                             <div className="w-1/2 aspect-[4/3] flex">
-                                <div className="bg-green-500 w-full h-full"></div>
+                                <div className="w-full h-full rounded-2xl overflow-hidden bg-black">
+                                    <img src="https://internetcomputer.org/img/home/chainfusion.webp" className='w-full h-full' alt="" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* nomor 4  */}
+                    <div className=" w-full flex justify-center ">
+                        <div className="container flex gap-20 text-start  py-14 px-8 items-center">
+                            <div className="w-1/2 flex flex-col gap-5">
+                                <p className='text-fluid-h3 font-semibold leading-fluid-h3'>AI-Powered</p>
+                                <p className=''>The AI-Powered system offers a personalized recommendation engine that enhances user engagement through tailored suggestions and a gaming pal that learns gameplay patterns, providing real-time assistance and personalized feedback to improve player skills and create an immersive experience.</p>
+                            </div>
+                            <div className="w-1/2 aspect-[4/3] flex">
+                                <div className="w-full h-full rounded-2xl overflow-hidden">
+                                    <img src="https://internetcomputer.org/img/home/ai.webp" alt="" />
+                                </div>
                             </div>
                         </div>
                     </div>

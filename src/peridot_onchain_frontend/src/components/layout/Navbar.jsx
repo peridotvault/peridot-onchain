@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Navbar = () => {
     return (
-        <nav className='fixed top-0 left-0 w-full z-20 transition-colors duration-75 backdrop-blur-lg'>
+        <nav className='fixed top-0 left-0 w-full z-20 transition-colors duration-75 backdrop-blur-lg bg-background_primary_opacity'>
             <div className="flex justify-center">
                 <div className="container px-8 py-8 flex items-center justify-between">
                     <img

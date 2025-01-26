@@ -1,61 +1,69 @@
 import Text "mo:base/Text";
-import Principal "mo:base/Principal";
-import Bool "mo:base/Bool";
-import Nat "mo:base/Nat";
 import Core "./Core";
+import Developer "./Developer";
 
 module {
     public type Username = Text;
 
+    //  =====================================
+    //  =====================================
+    // User =================================
     public type User = {
-        userId : Core.UserId;
-        principalId : Principal;
         username : Username;
-        displayName : ?Text;
-        profileUrl : ?Text;
-        email : ?Text;
-        age : Nat;
-        gender : Gender;
-        country : Core.Country;
-        userBehaviors : ?[UserBehavior];
-        isDeveloper : Bool;
-        createdAt : Core.Timestamp;
-        lastLogin : Core.Timestamp;
+        display_name : Text;
+        email : Text;
+        image_url : ?Text;
+        total_playtime : ?Int;
+        created_at : Core.Timestamp;
+        user_demographics : UserDemographic;
+        user_interactions : ?[UserInteraction];
+        user_libraries : ?[UserLibrary];
+        developer : ?Developer.Developer;
     };
 
-    // Gender =========================
+    // User Demographics =========================
+    public type UserDemographic = {
+        birth_date : Core.Timestamp;
+        gender : Gender;
+        country : Core.Country;
+    };
+
     public type Gender = {
         #male;
         #female;
         #other;
     };
 
-    // Behavior =========================
-    public type UserBehavior = {
-        appId : Core.AppId;
-        behavior : Behavior;
+    // User Interactions =========================
+    public type UserInteraction = {
+        app_id : Core.UserPrincipal;
+        interaction : Interaction;
+        created_at : Core.Timestamp;
     };
 
-    type Behavior = {
+    public type Interaction = {
         #view;
         #purchase;
         #play;
     };
 
-    // User's owned games and game states
+    // User Library =========================
     public type UserLibrary = {
-        userId : Core.UserId;
-        ownedApps : [AppOwnership];
-        totalPlaytime : Nat;
+        app_id : Core.AppId;
+        playtime_minute : Int;
         lastPlayed : ?Core.Timestamp;
+        current_version : Core.Version;
+        created_at : Core.Timestamp;
     };
 
-    public type AppOwnership = {
-        appId : Core.AppId;
-        purchaseDate : Core.Timestamp;
-        playtime : Nat;
-        lastPlayed : ?Core.Timestamp;
-        currentVersion : Core.Version;
+    //  =====================================
+    //  =====================================
+    // User Friends =========================
+    public type UserFriend = {
+        user1_principal_id : Core.UserPrincipal;
+        user2_principal_id : Core.UserPrincipal;
+        status : Core.Status;
+        created_at : Core.Timestamp;
     };
 
 };

@@ -36,7 +36,6 @@ module {
             // - number (0-9)
             // - underscore (_)
             // - hyphen (-)
-
             switch (char) {
                 case ('.') { true };
                 case ('_') { true };
@@ -58,9 +57,8 @@ module {
             };
 
             // Validate display name length if provided
-            switch (user.displayName) {
-                case (null) {};
-                case (?name) {
+            switch (user.display_name) {
+                case (name) {
                     if (name.size() > 50) {
                         return #err(#InvalidInput("Display name cannot exceed 50 characters"));
                     };

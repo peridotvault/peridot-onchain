@@ -12,6 +12,9 @@ export default {
 
         "background_primary": "var(--background_primary)",
         "background_secondary": "var(--background_secondary)",
+
+        "background_primary_opacity": "#1c1f1d71",
+
         "background_disabled": "#333333",
         "text": "var(--text)",
         "text_disabled": "gray",
