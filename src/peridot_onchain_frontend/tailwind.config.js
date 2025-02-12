@@ -26,27 +26,24 @@ export default {
         "danger": "#c5604c",
         "warning": "#deb887",
       },
-      lineHeight: {
-        'fluid-h1': 'clamp(7rem, 15vw, 17rem)',
-        'fluid-h2': 'clamp(2.5rem, 6vw, 6rem)',
-        'fluid-h3': 'clamp(1.5rem, 3vw, 3.5rem)',
-
-        'fluid-xl': 'clamp(1.7rem, 3vw, 2.5rem)',
-
-      },
       backgroundImage: {
         'hero-pattern': "url('/assets/bg-text.gif')",
-      },
-      fontSize: {
-        'fluid-h1': 'clamp(5rem, 15vw, 15rem)',
-        'fluid-h2': 'clamp(2rem, 5vw, 5rem)',
-        'fluid-h3': 'clamp(1rem, 3vw, 3rem)',
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 
-        'fluid-sm': 'clamp(0.8rem, 1vw, 1rem)',
-        'fluid-base': 'clamp(1rem, 1.5vw, 1.2rem)',
-        'fluid-lg': 'clamp(1.2rem, 2vw, 1.5rem)',
-        'fluid-xl': 'clamp(1.5rem, 3vw, 2rem)',
-      }
+      },
+      boxShadow: {
+        // black background
+        // large black background
+        'flat-lg': '27px 27px 55px #0c0d0c, -27px -27px 55px #2c312e',
+        'sunken-lg': 'inset 27px 27px 55px #0c0d0c, inset -27px -27px 55px #2c312e',
+        // small 
+        'flat-sm': '3px 3px 6px #0c0d0c, -3px -3px 6px #2c312e',
+        "sunken-sm": "inset 5px 5px 10px #0c0d0c, inset -5px -5px 10px #2c312e",
+        "arise-sm": "inset 2px 2px 5px #0c0d0c,inset -2px -2px 5px #2c312e, 2px 2px 5px #0c0d0c, -2px -2px 5px #2c312e",
+
+        // green background 
+        "sunken-md-green": "inset 5px 5px 10px #2e483a, inset -5px -5px 10px #3e624e",
+      },
     },
   },
   plugins: [],

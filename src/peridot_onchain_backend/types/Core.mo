@@ -733,5 +733,6 @@ module {
         #Unauthorized : Text;
         #InternalError : Text;
         #ValidationError : Text;
+        #NotAuthorized : Text;
     };
 };

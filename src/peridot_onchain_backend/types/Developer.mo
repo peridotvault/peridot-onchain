@@ -1,57 +1,70 @@
 import Text "mo:base/Text";
-import Int "mo:base/Int";
 import Core "./Core";
 
 module {
+    public type AnnouncementId = Text;
     //  =====================================
     //  =====================================
     // Developer ============================
     public type Developer = {
         developer_website : Text;
         developer_bio : Text;
-        total_follower : Int;
+        total_follower : Nat;
         joined_date : Core.Timestamp;
-        developer_followers : ?[DeveloperFollower];
-        developer_announcement : ?[DeveloperAnnouncement];
+        announcements : ?[AnnouncementId];
     };
 
     //  =====================================
     //  =====================================
     // Developer Follower ===================
-    public type DeveloperFollower = {
-        user_principal_id : Core.UserPrincipal;
+    public type DeveloperFollow = {
+        developer_principal_id : Core.UserPrincipal;
+        follower_principal_id : Core.UserPrincipal;
         created_at : Core.Timestamp;
     };
 
     //  =====================================
     //  =====================================
-    // Developer Announcements ==============
-    public type DeveloperAnnouncement = {
+    // Announcements ==============
+    public type Announcement = {
+        id : AnnouncementId;
+        developer_principal_id : Core.UserPrincipal;
         cover_image : Text;
         headline : Text;
         content : Text;
-        total_like : Int;
-        total_dislike : Int;
-        created_at : Core.Timestamp;
-        announcement_comments : ?[AnnouncementComment];
-        announcement_likes : ?[AnnouncementLike];
-        announcement_dislikes : ?[AnnouncementDislike];
-    };
-
-    // Announcement Comment =================
-    public type AnnouncementComment = {
-        user_principal_id : Core.UserPrincipal;
-        comment : Text;
+        total_likes : Nat;
+        total_dislikes : Nat;
         created_at : Core.Timestamp;
     };
 
-    // Announcement Like ====================
-    public type AnnouncementLike = {
+    // Separated interaction records
+    public type AnnouncementInteraction = {
+        announcement_id : AnnouncementId;
         user_principal_id : Core.UserPrincipal;
+        interaction_type : InteractionType;
+        created_at : Core.Timestamp;
     };
 
-    // Announcement Dislike =================
-    public type AnnouncementDislike = {
-        user_principal_id : Core.UserPrincipal;
+    public type InteractionType = {
+        #like;
+        #dislike;
+        #comment : Text;
     };
+
+    // // Announcement Comment =================
+    // public type AnnouncementComment = {
+    //     user_principal_id : Core.UserPrincipal;
+    //     comment : Text;
+    //     created_at : Core.Timestamp;
+    // };
+
+    // // Announcement Like ====================
+    // public type AnnouncementLike = {
+    //     user_principal_id : Core.UserPrincipal;
+    // };
+
+    // // Announcement Dislike =================
+    // public type AnnouncementDislike = {
+    //     user_principal_id : Core.UserPrincipal;
+    // };
 };

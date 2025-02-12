@@ -13,7 +13,8 @@ module {
         display_name : Text;
         email : Text;
         image_url : ?Text;
-        total_playtime : ?Int;
+        background_image_url : ?Text;
+        total_playtime : ?Nat;
         created_at : Core.Timestamp;
         user_demographics : UserDemographic;
         user_interactions : ?[UserInteraction];
@@ -50,7 +51,7 @@ module {
     // User Library =========================
     public type UserLibrary = {
         app_id : Core.AppId;
-        playtime_minute : Int;
+        playtime_minute : Nat;
         lastPlayed : ?Core.Timestamp;
         current_version : Core.Version;
         created_at : Core.Timestamp;

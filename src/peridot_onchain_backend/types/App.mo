@@ -14,7 +14,7 @@ module {
         description : Text;
         cover_image : Text;
         price : Float;
-        required_age : Int;
+        required_age : Nat;
         release_date : Core.Timestamp;
         status : Core.Status;
         created_at : Core.Timestamp;
@@ -40,8 +40,8 @@ module {
     public type SystemRequirements = {
         os : [OS];
         processor : Text;
-        memory : Int;
-        storage : Int;
+        memory : Nat;
+        storage : Nat;
         graphics : Text;
         additionalNotes : ?Text;
     };
@@ -57,7 +57,7 @@ module {
     // Game Ratings =========================
     public type GameRating = {
         user_principal_id : Core.UserPrincipal;
-        rating : Int;
+        rating : Nat;
         comment : Text;
         created_at : Core.Timestamp;
     };
