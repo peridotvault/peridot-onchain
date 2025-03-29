@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { faBarsProgress, faBook, faCheck, faFan, faStore, faVault, faWallet } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import ParticlesComponent from '../components/particles/particles'
-import { faApple } from '@fortawesome/free-brands-svg-icons'
+import { faApple, faWindows } from '@fortawesome/free-brands-svg-icons';
 
 export const LandingPage = () => {
 
@@ -41,6 +41,17 @@ export const LandingPage = () => {
             title: "Co-Founder, CTO",
         }
     ]
+    const [isMac, setIsMac] = useState(false);
+    const [isWindows, setIsWindows] = useState(false);
+
+    useEffect(() => {
+        const userAgent = navigator.userAgent;
+        if (userAgent.includes('Mac')) {
+            setIsMac(true);
+        } else if (userAgent.includes('Windows')) {
+            setIsWindows(true);
+        }
+    }, []);
 
     function RoadmapComponent(index, title, description, done) {
         return (
@@ -76,33 +87,57 @@ export const LandingPage = () => {
 
             {/* section 1 */}
             <section className="relative w-full flex justify-center overflow-hidden">
-                <div className="container flex justify-center px-8 py-96 ">
+                <div className="container flex justify-center px-8 py-72 ">
                     <div className="w-[45rem] text-center flex flex-col gap-6 ">
                         <div className="mb-5">
                             <label className='shadow-xl shadow-accent_primary/30 py-2 px-4 rounded-lg ring-1 ring-accent_primary/30 text-base'>Peridot is now in Alpha version</label>
                         </div>
-                        <p className='text-6xl font-bold  bg-clip-text text-transparent bg-hero-pattern'>The Best Gaming Platform</p>
-                        <p className='text-xl'>Blockchain Gaming Platform that allows Gamers to Buy, Download, and Play their favorite Games.</p>
+                        <p className='text-6xl font-bold'>The Best Gaming Platform</p>
+                        <p className='text-xl'>A Blockchain Gaming Platform that allows you to Buy, Download and Play your favorite Games.</p>
                         <div className="flex justify-center items-center gap-6">
-                            <button className='shadow-flat-sm py-3 px-6 rounded-xl bg-background_primary flex justify-center items-center gap-3'>
-                                <FontAwesomeIcon icon={faApple} />
-                                <p>Download for Mac</p>
-                            </button>
-                            <button className='shadow-arise-sm py-3 px-6 rounded-xl bg-background_primary'>
+                            {isMac ? (
+                                <a href='https://drive.google.com/file/d/1C9c25RUvqGoKlVTq-7Rw-i8YCCMHQXDU/view?usp=sharing' target='_blank' className='py-3 px-6 rounded-xl bg-accent_secondary flex justify-center items-center gap-3 hover:scale-110 duration-300'>
+                                    <FontAwesomeIcon icon={faApple} />
+                                    <p>Download for Mac</p>
+                                </a>
+                            ) : (
+                                isWindows ? (
+                                    <a href='https://drive.google.com/file/d/1exaDr2hBmko_dUwXiJjF3nv8mN5LUxeY/view?usp=sharing' target='_blank' className='py-3 px-6 rounded-xl bg-accent_secondary flex justify-center items-center gap-3 hover:scale-110 duration-300'>
+                                        <FontAwesomeIcon icon={faWindows} />
+                                        <p>Download for Windows</p>
+                                    </a>
+                                ) : (
+                                    <div className='shadow-xl shadow-accent_primary/30 py-2 px-4 rounded-xl ring-1 ring-accent_primary/30 flex gap-3 items-center'>
+                                        <p>Now Just Available on </p>
+                                        <FontAwesomeIcon icon={faApple} /> and
+                                        <FontAwesomeIcon icon={faWindows} />
+                                    </div>
+                                )
+                            )}
+                            {/* <button className='py-3 px-6 rounded-xl bg-background_primary'>
                                 <p>Read the docs</p>
-                            </button>
+                            </button> */}
                         </div>
                     </div>
                 </div>
-                <img src="./assets/bgl1.png" alt="" className='absolute -z-20 w-full h-full top-0 left-0 object-cover' />
+                {/* <img src="./assets/bgl1.png" alt="" className='absolute -z-20 w-full h-full top-0 left-0 object-cover' /> */}
+                <video
+                    autoPlay
+                    muted
+                    loop
+                    className="absolute -z-20 w-full h-full top-0 left-0 object-cover"
+                >
+                    <source src="https://res.cloudinary.com/dcf3oktvs/video/upload/v1743225301/hb1b0kqgmkjlpy9qglzy.mp4" />
+                </video>
+
                 <div className="w-full h-[1000px] translate-y-1/2 size-18 rounded-full bg-gradient-radial from-accent_primary via-background_primary opacity-10 absolute bottom-0 -z-10"></div>
             </section>
 
             {/* section 2 */}
-            <section className='w-full py-16 flex items-start justify-center gap-16 shadow-sunken-sm grayscale relative bg-background_primary'>
+            <section className='w-full py-16 flex items-start justify-center gap-16 shadow-sunken-sm relative bg-background_primary grayscale'>
                 <img src="https://internetcomputer.org/img/IC_logo_horizontal_white.svg" alt="" className='h-8' />
                 <img src="./assets/images/antigane.png" alt="" className='h-8' />
-                <img src="https://recheck.io/images/company/DFINITY-horizontal-logo.png" alt="" className='h-8' />
+                <img src="https://indonesiaonchain.com/wp-content/uploads/2024/03/Disruptives-_-blck-letter-2-1024x181.png" alt="" className='h-8 invert' />
                 {/* fade  */}
                 <div className="">
                     <div className="bg-gradient-to-r from-background_primary w-52 h-full absolute top-0 left-0"></div>
@@ -110,8 +145,8 @@ export const LandingPage = () => {
                 </div>
             </section>
 
-            {/* section 3 */}
-            <section className='container flex flex-col justify-center px-8 py-52 gap-10 w-full overflow-hidden'>
+            {/* section 3 About */}
+            <section id='about' className='container flex flex-col justify-center px-8 py-32 gap-10 w-full overflow-hidden'>
                 <div className="w-[35rem] flex flex-col items-start gap-5">
                     <p className='bg-gradient-to-tr from-accent_secondary via-accent_primary to-accent_primary bg-clip-text text-transparent'>Gaming isn't just a hobby</p>
                     <p className='text-4xl font-bold'>Elevate Your Lifestyle with the Vault of Games</p>
@@ -135,7 +170,7 @@ export const LandingPage = () => {
             </section>
 
             {/* section 4 */}
-            <section className='container flex flex-col justify-center px-8 gap-20 pb-52'>
+            <section className='container flex flex-col justify-center px-8 gap-20 py-32'>
                 <div className="flex flex-col items-center gap-5">
                     <div className="flex gap-2 items-center">
                         <img src="./assets/icons/ai.png" alt="" className='h-8' />
@@ -192,7 +227,7 @@ export const LandingPage = () => {
             </section>
 
             {/* section 5 */}
-            <section className='container flex flex-col justify-center px-8 gap-20 pb-52'>
+            <section id='roadmap' className='container flex flex-col justify-center px-8 gap-20 py-32'>
                 <div className="flex flex-col items-center gap-5">
                     <p className='text-4xl font-light'>
                         <label className=' font-bold'>Roadmap </label>
@@ -208,8 +243,8 @@ export const LandingPage = () => {
                 </div>
             </section>
 
-            {/* section 6 */}
-            <section className='container flex flex-col justify-center px-8 gap-20 pb-52'>
+            {/* section 6 Team */}
+            <section id='team' className='container flex flex-col justify-center px-8 gap-20 py-32 '>
                 <div className="flex flex-col items-center gap-5">
                     <p className='text-4xl font-light '>Meet Our Team</p>
                     <p className='text-xl w-[50rem] text-center'>Passionate Innovators Driving Peridot Forward</p>

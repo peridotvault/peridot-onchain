@@ -1,6 +1,7 @@
 import UserType "./types/User";
-
 import Core "./types/Core";
+import Developer "./types/Developer";
+
 import UserHandler "handlers/UserHandler";
 import HashMap "mo:base/HashMap";
 import Text "mo:base/Text";
@@ -10,8 +11,6 @@ import Buffer "mo:base/Buffer";
 import Time "mo:base/Time";
 import Array "mo:base/Array";
 import Int "mo:base/Int";
-import User "types/User";
-import Developer "types/Developer";
 
 actor Peridot {
   // TYPES ==========================================================
@@ -62,7 +61,7 @@ actor Peridot {
   // User ===========================================================
   //  ===============================================================
   // CREATE
-  public shared (msg) func createUser(username : User.Username, display_name : Text, email : Text, birth_date : Core.Timestamp, gender : User.Gender, country : Core.Country) : async ApiResponse<User> {
+  public shared (msg) func createUser(username : UserType.Username, display_name : Text, email : Text, birth_date : Core.Timestamp, gender : UserType.Gender, country : Core.Country) : async ApiResponse<User> {
 
     switch (users.get(msg.caller)) {
       case (?_existing) {
@@ -71,7 +70,7 @@ actor Peridot {
       case (null) {};
     };
 
-    let user_demographics : User.UserDemographic = {
+    let user_demographics : UserType.UserDemographic = {
       birth_date = birth_date;
       gender = gender;
       country = country;
@@ -107,6 +106,45 @@ actor Peridot {
     // Store user data
     users.put(msg.caller, user);
     #ok(user);
+  };
+
+  // Update
+  public shared (msg) func updateUser(user : UserType.UpdateUser) : async ApiResponse<User> {
+    switch (users.get(msg.caller)) {
+      case (null) {
+        return #err(#NotFound("User not found, You Need to Create Account"));
+      };
+      case (?existing) {
+        if (user.username == existing.username) {} else {
+          // Check if username already exists
+          if (isUsernameTaken(user.username)) {
+            return #err(#AlreadyExists("Username already taken"));
+          };
+        };
+
+        // Validate profile data
+        switch (userHandler.validateUsername(user.username)) {
+          case (#err(error)) { return #err(#InvalidInput(error)) };
+          case (#ok()) {};
+        };
+
+        let updateUser : User = {
+          existing with
+          username = user.username;
+          display_name = user.display_name;
+          email = user.email;
+          image_url = user.image_url;
+          background_image_url = user.background_image_url;
+          user_demographics = user.user_demographics;
+        };
+
+        // Store user data
+        users.put(msg.caller, updateUser);
+        #ok(updateUser);
+
+      };
+    };
+
   };
 
   // GET
@@ -165,6 +203,17 @@ actor Peridot {
       };
     };
     false;
+  };
+
+  public func isUsernameValid(username : Text) : async ApiResponse<Bool> {
+    if (isUsernameTaken(username)) {
+      return #err(#InvalidInput("username already taken"));
+    };
+
+    switch (userHandler.validateUsername(username)) {
+      case (#err(error)) { return #err(#InvalidInput(error)) };
+      case (#ok()) { return #ok(true) };
+    };
   };
 
   //  ===============================================================
@@ -239,6 +288,26 @@ actor Peridot {
       if (
         Principal.equal(msg.caller, friend.user1_principal_id) or
         Principal.equal(msg.caller, friend.user2_principal_id)
+      ) {
+        userFriends.add(friend);
+      };
+    };
+
+    if (userFriends.size() == 0) {
+      #err(#NotFound("No friends found"));
+    } else {
+      #ok(Buffer.toArray(userFriends));
+    };
+  };
+
+  // Get Friend Request List
+  public query (msg) func getFriendRequestList() : async ApiResponse<[UserType.UserFriend]> {
+    let userFriends = Buffer.Buffer<UserType.UserFriend>(0);
+
+    for ((_, friend) in friends.entries()) {
+      if (
+        Principal.equal(msg.caller, friend.user1_principal_id) or
+        Principal.equal(msg.caller, friend.user2_principal_id) and friend.status == #pending
       ) {
         userFriends.add(friend);
       };

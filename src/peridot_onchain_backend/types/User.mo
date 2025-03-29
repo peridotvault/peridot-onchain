@@ -4,6 +4,14 @@ import Developer "./Developer";
 
 module {
     public type Username = Text;
+    public type UpdateUser = {
+        username : Username;
+        display_name : Text;
+        email : Text;
+        image_url : ?Text;
+        background_image_url : ?Text;
+        user_demographics : UserDemographic;
+    };
 
     //  =====================================
     //  =====================================
