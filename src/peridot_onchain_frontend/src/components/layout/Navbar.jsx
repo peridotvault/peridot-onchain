@@ -18,25 +18,25 @@ export const Navbar = () => {
         };
     }, []);
     return (
-        <nav className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 ${isScrolled ? 'backdrop-blur-lg' : ''}`}>
-            <div className="flex justify-center">
-                <div className="container px-8 py-6 flex items-center justify-between">
+        <header className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 flex justify-center ${isScrolled ? 'backdrop-blur-lg' : ''}`}>
+            <div className="container px-8 py-6 flex items-center justify-between">
+                <a href="/#">
                     <img
                         src="./logo/white-text-secondary.png"
-                        className='h-8'
+                        className='h-8 max-md:h-6'
                         alt=""
                         data-white-src="./logo/white-text-secondary.png"
                         data-dark-src="./logo/black-text-secondary.png"
                     />
-                    {/* actions  */}
-                    <div className="flex gap-8 items-center">
-                        <a href="/#about">About</a>
-                        <a href="/#team">Team</a>
-                        <a href="/#roadmap">Roadmap</a>
-                        <a href="/#" className='bg-accent_secondary py-3 px-8 rounded-xl font-bold'>Download</a>
-                    </div>
+                </a>
+                {/* actions  */}
+                <div className="flex gap-8 items-center max-md:hidden">
+                    <a href="/#about">About</a>
+                    <a href="/#roadmap">Roadmap</a>
+                    <a href="/#team">Team</a>
+                    <a href="/#" className='bg-accent_secondary py-3 px-8 rounded-xl font-bold'>Download</a>
                 </div>
             </div>
-        </nav>
+        </header>
     );
 };

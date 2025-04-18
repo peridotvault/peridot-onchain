@@ -87,7 +87,7 @@ export const LandingPage = () => {
 
             {/* section 1 */}
             <section className="relative w-full flex justify-center overflow-hidden">
-                <div className="container flex justify-center px-8 py-72 ">
+                <div className="container flex justify-center items-center px-8 h-[80dvh]  max-h-[800px]">
                     <div className="w-[45rem] text-center flex flex-col gap-6 ">
                         <div className="mb-5">
                             <label className='shadow-xl shadow-accent_primary/30 py-2 px-4 rounded-lg ring-1 ring-accent_primary/30 text-base'>Peridot is now in Alpha version</label>
@@ -102,7 +102,7 @@ export const LandingPage = () => {
                                 </a>
                             ) : (
                                 isWindows ? (
-                                    <a href='https://drive.google.com/file/d/1exaDr2hBmko_dUwXiJjF3nv8mN5LUxeY/view?usp=sharing' target='_blank' className='py-3 px-6 rounded-xl bg-accent_secondary flex justify-center items-center gap-3 hover:scale-110 duration-300'>
+                                    <a href='https://drive.google.com/file/d/1eGa9PnxW39GtpITtUTj2ddi1tTblTHs-/view?usp=sharing' target='_blank' className='py-3 px-6 rounded-xl bg-accent_secondary flex justify-center items-center gap-3 hover:scale-110 duration-300'>
                                         <FontAwesomeIcon icon={faWindows} />
                                         <p>Download for Windows</p>
                                     </a>
@@ -134,18 +134,6 @@ export const LandingPage = () => {
             </section>
 
             {/* section 2 */}
-            <section className='w-full py-16 flex items-start justify-center gap-16 shadow-sunken-sm relative bg-background_primary grayscale'>
-                <img src="https://internetcomputer.org/img/IC_logo_horizontal_white.svg" alt="" className='h-8' />
-                <img src="./assets/images/antigane.png" alt="" className='h-8' />
-                <img src="https://indonesiaonchain.com/wp-content/uploads/2024/03/Disruptives-_-blck-letter-2-1024x181.png" alt="" className='h-8 invert' />
-                {/* fade  */}
-                <div className="">
-                    <div className="bg-gradient-to-r from-background_primary w-52 h-full absolute top-0 left-0"></div>
-                    <div className="bg-gradient-to-l from-background_primary w-52 h-full absolute top-0 right-0"></div>
-                </div>
-            </section>
-
-            {/* section 3 About */}
             <section id='about' className='container flex flex-col justify-center px-8 py-32 gap-10 w-full overflow-hidden'>
                 <div className="w-[35rem] flex flex-col items-start gap-5">
                     <p className='bg-gradient-to-tr from-accent_secondary via-accent_primary to-accent_primary bg-clip-text text-transparent'>Gaming isn't just a hobby</p>
@@ -153,23 +141,23 @@ export const LandingPage = () => {
                     <p className='text-xl'>Blockchain Gaming Platform that allows Gamers to Buy, Download, and Play their favorite Games.</p>
                 </div>
                 <div className="w-[20rem] flex flex-col items-start justify-start gap-5">
-                    <button className='shadow-arise-sm hover:shadow-flat-sm py-3 rounded-xl px-6 w-full flex gap-3 items-center'>
+                    <button className='shadow-arise-sm hover:shadow-flat-sm py-3 rounded-xl px-6 w-full flex gap-3 items-center bg-background_primary'>
                         <FontAwesomeIcon icon={faVault} />
                         <p className='text-start'>
                             Game Vault</p>
                     </button>
-                    <button className='shadow-arise-sm hover:shadow-flat-sm py-3 rounded-xl px-6 w-full flex gap-3 items-center'>
+                    <button className='shadow-arise-sm hover:shadow-flat-sm py-3 rounded-xl px-6 w-full flex gap-3 items-center bg-background_primary'>
                         <FontAwesomeIcon icon={faWallet} />
                         <p className='text-start'>Native Wallet</p>
                     </button>
-                    <button className='shadow-arise-sm hover:shadow-flat-sm py-3 rounded-xl px-6 w-full flex gap-3 items-center'>
+                    <button className='shadow-arise-sm hover:shadow-flat-sm py-3 rounded-xl px-6 w-full flex gap-3 items-center bg-background_primary'>
                         <FontAwesomeIcon icon={faStore} />
                         <p className='text-start'>Item Marketplace</p>
                     </button>
                 </div>
             </section>
 
-            {/* section 4 */}
+            {/* section 3 */}
             <section className='container flex flex-col justify-center px-8 gap-20 py-32'>
                 <div className="flex flex-col items-center gap-5">
                     <div className="flex gap-2 items-center">
@@ -193,36 +181,52 @@ export const LandingPage = () => {
                             <img src="./assets/al1.png" alt="" className='top-0 -right-10 absolute object-contain' />
                         </div>
                         {/* background  */}
-                        <img src="./assets/bgl2.png" alt="" className='absolute opacity-50 w-full h-full top-0 left-0 object-cover' />
+                        <img src="./assets/bgl2.jpg" alt="" className='absolute opacity-30 w-full h-full top-0 left-0 object-cover' />
                         <div className="w-[1500px] h-[1000px] translate-y-1/2 -translate-x-1/3 size-18 rounded-full bg-gradient-radial from-accent_primary via-background_primary opacity-10 absolute bottom-0 "></div>
                     </div>
-                    <div className="flex gap-10">
-                        <div className='shadow-flat-sm hover:shadow-flat-sm rounded-xl p-10 flex flex-col items-start gap-3 w-1/2 bg-background_primary relative overflow-hidden'>
-                            <p className='text-start text-2xl font-bold z-10'>Personalize Recommendation</p>
-                            <p className='text-start font-light z-10'>
-                                Play smarter, not harder. With our Personalized Recommendations, discover games that match your unique preferences and play style.
-                            </p>
+                    <div className="flex max-md:flex-col gap-10">
+                        <div className='shadow-flat-sm hover:shadow-flat-sm rounded-xl p-10 flex flex-col justify-between items-start gap-3 max-md:w-full w-1/2 bg-background_primary relative overflow-hidden'>
+                            <div className="z-10 flex flex-col gap-2">
+                                <p className='text-start text-2xl font-bold'>Personalize Recommendation</p>
+                                <p className='text-start font-light'>
+                                    Play smarter, not harder. With our Personalized Recommendations, discover games that match your unique preferences and play style.
+                                </p>
+                            </div>
                             <div className="flex justify-center w-full mt-3 z-10">
                                 <img src="./assets/al2.png" alt="" className='w-[20rem] object-contain' />
                             </div>
 
                             {/* background  */}
-                            <img src="./assets/bgl2.png" alt="" className='absolute opacity-50 w-full h-full top-0 left-0 object-cover' />
+                            <img src="./assets/bgl2.jpg" alt="" className='absolute opacity-30 w-full h-full top-0 left-0 object-cover' />
                             <div className="w-[1500px] h-[1000px] translate-y-1/2 -translate-x-1/3 size-18 rounded-full bg-gradient-radial from-accent_primary via-background_primary opacity-10 absolute bottom-0 "></div>
                         </div>
-                        <div className='shadow-flat-sm hover:shadow-flat-sm rounded-xl p-10 flex flex-col items-start gap-3 w-1/2 relative overflow-hidden'>
-                            <p className='text-start text-2xl font-bold z-10'>Game Night Planner</p>
-                            <p className='text-start font-light z-10'>
-                                Say goodbye to the hassle of organizing game nights and let our intelligent planner do the work for you!
-                            </p>
+                        <div className='shadow-flat-sm hover:shadow-flat-sm rounded-xl p-10 flex flex-col justify-between items-start gap-3 max-md:w-full w-1/2 relative overflow-hidden'>
+                            <div className="z-10 flex flex-col gap-2">
+                                <p className='text-start text-2xl font-bold '>Game Night Planner</p>
+                                <p className='text-start font-light '>
+                                    Say goodbye to the hassle of organizing game nights and let our intelligent planner do the work for you!
+                                </p>
+                            </div>
                             <div className="flex justify-center w-full z-10">
                                 <img src="./assets/al3.png" alt="" className='w-[20rem] object-contain' />
                             </div>
                             {/* background  */}
-                            <img src="./assets/bgl2.png" alt="" className='absolute opacity-50 w-full h-full top-0 left-0 object-cover' />
+                            <img src="./assets/bgl2.jpg" alt="" className='absolute opacity-30 w-full h-full top-0 left-0 object-cover' />
                             <div className="w-[1500px] h-[1000px] translate-y-1/2 -translate-x-1/3 size-18 rounded-full bg-gradient-radial from-accent_primary via-background_primary opacity-10 absolute bottom-0 "></div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            {/* section 4 */}
+            <section className='w-full py-16 flex items-start justify-center gap-16 shadow-sunken-sm relative bg-background_primary grayscale'>
+                <img src="./assets/images/antigane.png" alt="" className='h-8' />
+                <img src="https://internetcomputer.org/img/IC_logo_horizontal_white.svg" alt="" className='h-8' />
+                <img src="https://indonesiaonchain.com/wp-content/uploads/2024/03/Disruptives-_-blck-letter-2-1024x181.png" alt="" className='h-8 invert' />
+                {/* fade  */}
+                <div className="">
+                    <div className="bg-gradient-to-r from-background_primary w-52 h-full absolute top-0 left-0"></div>
+                    <div className="bg-gradient-to-l from-background_primary w-52 h-full absolute top-0 right-0"></div>
                 </div>
             </section>
 
@@ -250,9 +254,9 @@ export const LandingPage = () => {
                     <p className='text-xl w-[50rem] text-center'>Passionate Innovators Driving Peridot Forward</p>
                 </div>
                 {/* content  */}
-                <div className="flex justify-center items-center gap-10">
+                <div className="flex max-md:flex-col justify-center items-center gap-10">
                     {teamLists.map((item) => (
-                        <div className="h-[700px] w-[400px] rounded-xl relative overflow-hidden hover:shadow-flat-lg">
+                        <div className="w-[400px] aspect-[4/7] max-md:w-full max-md:aspect-[3/4] rounded-xl relative overflow-hidden hover:shadow-flat-lg">
                             <img src={item.image} className='w-full h-full object-cover absolute top-0 left-0 -z-10' />
                             <div className="bg-gradient-to-t from-background_primary w-full h-full absolute top-0 left-0 -z-10"></div>
                             {/* data  */}

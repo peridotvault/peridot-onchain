@@ -6,7 +6,7 @@ import { Footer } from './Footer';
 export const MainLayout = () => {
 
     return (
-        <main className='flex flex-col w-full overflow-hidden'>
+        <main className='flex flex-col w-full overflow-hidden min-h-screen justify-between'>
             <Navbar />
             <Outlet />
             <Footer />
