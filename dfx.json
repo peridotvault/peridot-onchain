@@ -4,6 +4,10 @@
       "main": "src/peridot_onchain_backend/user/main.mo",
       "type": "motoko"
     },
+    "peridot_app": {
+      "main": "src/peridot_onchain_backend/app/main.mo",
+      "type": "motoko"
+    },
     "peridot_dex_token": {
       "main": "src/peridot_onchain_backend/dex/token/main.mo",
       "type": "motoko"

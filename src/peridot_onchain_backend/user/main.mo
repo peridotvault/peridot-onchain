@@ -1,5 +1,5 @@
 import UserType "./types/User";
-import Core "./types/Core";
+import Core "./../Core";
 import Developer "./types/Developer";
 
 import UserHandler "handlers/UserHandler";

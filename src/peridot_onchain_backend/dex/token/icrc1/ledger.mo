@@ -12,7 +12,7 @@ import Hash "mo:base/Hash";
 import Text "mo:base/Text";
 import Error "mo:base/Error";
 import Buffer "mo:base/Buffer";
-import TokenTypes "../types";
+import TokenTypes "../TypeToken";
 import Int "mo:base/Int";
 
 module {

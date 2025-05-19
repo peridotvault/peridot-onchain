@@ -1,7 +1,7 @@
 // src/factory/state.mo
 import Principal "mo:base/Principal";
 import Time "mo:base/Time";
-import TokenTypes "../token/types";
+import TokenTypes "../token/TypeToken";
 
 module {
     // Canister management types

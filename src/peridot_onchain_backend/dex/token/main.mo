@@ -1,5 +1,5 @@
 // src/token/main.mo
-import Types "types";
+import Types "TypeToken";
 import ICRC1Types "icrc1/types";
 import ICRC1Ledger "icrc1/ledger";
 import Principal "mo:base/Principal";

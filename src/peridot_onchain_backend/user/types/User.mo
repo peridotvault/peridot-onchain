@@ -1,5 +1,5 @@
 import Text "mo:base/Text";
-import Core "./Core";
+import Core "./../../Core";
 import Developer "./Developer";
 
 module {

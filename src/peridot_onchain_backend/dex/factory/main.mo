@@ -10,7 +10,7 @@ import Text "mo:base/Text";
 import Time "mo:base/Time";
 import TrieMap "mo:base/TrieMap";
 import Iter "mo:base/Iter";
-import TokenTypes "../token/types";
+import TokenTypes "../token/TypeToken";
 import ICRC1Types "../token/icrc1/types";
 import State "state";
 import Cycles "mo:base/ExperimentalCycles";

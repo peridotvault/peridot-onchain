@@ -1,6 +1,6 @@
 import Text "mo:base/Text";
 import Float "mo:base/Float";
-import Core "./Core";
+import Core "./../Core";
 
 module {
 
