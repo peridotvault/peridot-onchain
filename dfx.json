@@ -8,23 +8,10 @@
       "main": "src/peridot_onchain_backend/app/main.mo",
       "type": "motoko"
     },
-    "peridot_dex_token": {
-      "main": "src/peridot_onchain_backend/dex/token/main.mo",
-      "type": "motoko"
-    },
-    "peridot_dex_factory": {
-      "main": "src/peridot_onchain_backend/dex/factory/main.mo",
-      "type": "motoko"
-    },
-    "peridot_dex_pool": {
-      "main": "src/peridot_onchain_backend/dex/pool/main.mo",
-      "type": "motoko"
-    },
     "peridot_onchain_frontend": {
       "dependencies": [
         "peridot_user",
-        "peridot_dex_token",
-        "peridot_dex_pool"
+        "peridot_app"
       ],
       "source": [
         "src/peridot_onchain_frontend/dist"

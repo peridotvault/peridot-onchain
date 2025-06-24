@@ -79,8 +79,8 @@ actor Peridot {
     let user : User = {
       username = username;
       display_name = display_name;
-      description = null;
-      link = null;
+      // description = null;
+      // link = null;
       email = email;
       image_url = null;
       background_image_url = null;
