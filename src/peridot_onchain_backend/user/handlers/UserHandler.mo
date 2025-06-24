@@ -1,7 +1,7 @@
 import Result "mo:base/Result";
 import Char "mo:base/Char";
-import UserType "../types/User";
-import Core "./../../Core";
+import UserType "../types/UserTypes";
+import Core "./../../core/Core";
 
 module {
     public class UserHandler() {

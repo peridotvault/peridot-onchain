@@ -1,6 +1,6 @@
-import UserType "./types/User";
-import Core "./../Core";
-import Developer "./types/Developer";
+import UserType "./types/UserTypes";
+import Core "./../core/Core";
+import Developer "./types/DeveloperTypes";
 
 import UserHandler "handlers/UserHandler";
 import HashMap "mo:base/HashMap";

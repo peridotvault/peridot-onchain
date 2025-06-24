@@ -1,6 +1,6 @@
 import Text "mo:base/Text";
-import Core "./../../Core";
-import Developer "./Developer";
+import Core "./../../core/Core";
+import Developer "./DeveloperTypes";
 
 module {
     public type Username = Text;
