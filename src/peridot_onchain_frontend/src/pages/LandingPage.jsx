@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { faBarsProgress, faBook, faCheck, faFan, faStore, faVault, faWallet } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import ParticlesComponent from '../components/particles/particles'
-import { faApple, faWindows } from '@fortawesome/free-brands-svg-icons';
+import SpotlightCard from '../components/atoms/SpotlightCard'
 
 export const LandingPage = () => {
 
@@ -41,17 +41,7 @@ export const LandingPage = () => {
             title: "Co-Founder, CTO",
         }
     ]
-    const [isMac, setIsMac] = useState(false);
-    const [isWindows, setIsWindows] = useState(false);
 
-    useEffect(() => {
-        const userAgent = navigator.userAgent;
-        if (userAgent.includes('Mac')) {
-            setIsMac(true);
-        } else if (userAgent.includes('Windows')) {
-            setIsWindows(true);
-        }
-    }, []);
 
     function RoadmapComponent(index, title, description, done) {
         return (
@@ -81,56 +71,84 @@ export const LandingPage = () => {
         );
     }
 
+    const FeatureComponent = ({ aspect, item }) => {
+        return (
+            <SpotlightCard className={`custom-spotlight-card border backdrop-blur-lg border-white/10 rounded-2xl ${aspect}`} spotlightColor="rgba(0, 229, 255, 0.2)">
+                {item}
+            </SpotlightCard>
+        )
+    }
+
     return (
-        <main className='flex flex-col items-center justify-center text-lg'>
+        <main className='flex flex-col items-center justify-center text-lg gap-28'>
             <ParticlesComponent />
 
             {/* section 1 */}
-            <section className="relative w-full flex justify-center overflow-hidden">
-                <div className="container flex justify-center items-center px-8 h-[80dvh]  max-h-[800px]">
-                    <div className="w-[45rem] text-center flex flex-col gap-6 ">
-                        <div className="mb-5">
-                            <label className='shadow-xl shadow-accent_primary/30 py-2 px-4 rounded-lg ring-1 ring-accent_primary/30 text-base'>Peridot is now in Alpha version</label>
+            <section className="relative w-full flex flex-col items-center justify-center overflow-hidden">
+                <div className="h-[150px]"></div>
+                <div className="container flex justify-center items-end px-8 h-[45dvh]">
+                    <div className="w-[800px] text-center flex flex-col gap-6 ">
+                        <div className="flex justify-center">
+                            <div className="shadow-xl backdrop-blur-xl bg-black/15 shadow-accent_primary/30 py-2 px-4 rounded-lg font-medium ring-1 ring-accent_primary/30 text-base">
+                                <span >Peridot is now in Alpha version</span>
+                            </div>
                         </div>
-                        <p className='text-6xl font-bold'>The Best Gaming Platform</p>
-                        <p className='text-xl'>A Blockchain Gaming Platform that allows you to Buy, Download and Play your favorite Games.</p>
-                        <div className="flex justify-center items-center gap-6">
-                            {isMac ? (
-                                <a href='https://drive.google.com/file/d/1C9c25RUvqGoKlVTq-7Rw-i8YCCMHQXDU/view?usp=sharing' target='_blank' className='py-3 px-6 rounded-xl bg-accent_secondary flex justify-center items-center gap-3 hover:scale-110 duration-300'>
-                                    <FontAwesomeIcon icon={faApple} />
-                                    <p>Download for Mac</p>
-                                </a>
-                            ) : (
-                                isWindows ? (
-                                    <a href='https://drive.google.com/file/d/1eGa9PnxW39GtpITtUTj2ddi1tTblTHs-/view?usp=sharing' target='_blank' className='py-3 px-6 rounded-xl bg-accent_secondary flex justify-center items-center gap-3 hover:scale-110 duration-300'>
-                                        <FontAwesomeIcon icon={faWindows} />
-                                        <p>Download for Windows</p>
-                                    </a>
-                                ) : (
-                                    <div className='shadow-xl shadow-accent_primary/30 py-2 px-4 rounded-xl ring-1 ring-accent_primary/30 flex gap-3 items-center'>
-                                        <p>Now Just Available on </p>
-                                        <FontAwesomeIcon icon={faApple} /> and
-                                        <FontAwesomeIcon icon={faWindows} />
-                                    </div>
-                                )
-                            )}
-                            {/* <button className='py-3 px-6 rounded-xl bg-background_primary'>
-                                <p>Read the docs</p>
-                            </button> */}
-                        </div>
+                        < h1 className='text-7xl font-bold'>Gaming isn't just a hobby.</h1>
+                        <p className='text-2xl'>Peridot is a smart desktop launcher for Web2 & Web3 games, giving players real ownership and developers an easier way to publish.</p>
                     </div>
                 </div>
-                {/* <img src="./assets/bgl1.png" alt="" className='absolute -z-20 w-full h-full top-0 left-0 object-cover' /> */}
-                <video
-                    autoPlay
-                    muted
-                    loop
-                    className="absolute -z-20 w-full h-full top-0 left-0 object-cover"
-                >
-                    <source src="https://res.cloudinary.com/dcf3oktvs/video/upload/v1743225301/hb1b0kqgmkjlpy9qglzy.mp4" />
-                </video>
 
-                <div className="w-full h-[1000px] translate-y-1/2 size-18 rounded-full bg-gradient-radial from-accent_primary via-background_primary opacity-10 absolute bottom-0 -z-10"></div>
+            </section>
+
+            <section className='max-w-[1350px] w-full px-12 grid grid-cols-2 gap-9 duration-300'>
+                <div className="w-full flex flex-col gap-8">
+                    <FeatureComponent aspect={"aspect-[3/2]"}
+                        item={
+                            <div className="">
+                                <div className="flex items-center gap-4">
+                                    <FontAwesomeIcon icon={faWallet} />
+                                    <h2 className='text-2xl font-bold'>Native Wallet</h2>
+                                </div>
+                            </div>
+                        }
+                    />
+                    <FeatureComponent aspect={"aspect-[9/10]"}
+                        item={
+                            <div className="">
+                                <div className="flex items-center gap-4">
+                                    <FontAwesomeIcon icon={faVault} />
+                                    <h2 className='text-2xl font-bold'>Game Vault</h2>
+                                </div>
+                            </div>
+                        }
+                    />
+                    <div className={`border border-white/10 bg-accent_secondary backdrop-blur-lg rounded-2xl w-full flex-1`}></div>
+                </div>
+                <div className="w-full flex flex-col gap-8">
+                    <FeatureComponent aspect={"aspect-[6/7]"}
+                        item={
+                            <div className="">
+
+                                <div className="flex items-center gap-4">
+                                    <img src="./assets/icons/ai.png" alt="" className='h-6' />
+                                    <h2 className='text-2xl font-bold'>AI Powered</h2>
+                                </div>
+                            </div>
+                        }
+                    />
+                    <FeatureComponent aspect={"aspect-square"}
+                        item={
+                            <div className="">
+
+                                <div className="flex items-center gap-4">
+                                    <FontAwesomeIcon icon={faStore} />
+                                    <h2 className='text-2xl font-bold'>Item Marketplace</h2>
+                                </div>
+                            </div>
+                        }
+                    />
+
+                </div>
             </section>
 
             {/* section 2 */}
@@ -268,6 +286,21 @@ export const LandingPage = () => {
                     ))}
                 </div>
             </section>
+
+            {/* Background ✅ */}
+            <div className="absolute top-0 left-0 w-full h-4/5 max-h-[1000px] -z-20">
+                <video
+                    autoPlay
+                    muted
+                    loop
+                    className=" w-full h-full object-cover opacity-80"
+                >
+                    <source src="https://res.cloudinary.com/dcf3oktvs/video/upload/v1743225301/hb1b0kqgmkjlpy9qglzy.mp4" />
+                </video>
+
+                <div className="w-full h-[200px] bg-gradient-to-b from-background_primary absolute opacity-80 top-0 z-10"></div>
+                <div className="w-full h-[25%] bg-gradient-to-t from-background_primary absolute bottom-0 z-10"></div>
+            </div>
 
         </main>
     )
