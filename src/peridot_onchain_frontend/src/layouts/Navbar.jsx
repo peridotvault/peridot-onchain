@@ -19,15 +19,17 @@ export const Navbar = () => {
     }, []);
     return (
         <header className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 flex justify-center ${isScrolled ? 'backdrop-blur-lg' : ''}`}>
-            <div className="container px-8 py-6 flex items-center justify-between">
-                <a href="/#">
-                    <img
+            <div className="w-full px-12 py-8 flex items-center justify-between">
+                <a href="/#" className='text-2xl'>
+                    <span className='font-bold'>Peridot</span>
+                    <span >Vault</span>
+                    {/* <img
                         src="./logo/white-text-secondary.png"
                         className='h-8 max-md:h-6'
                         alt=""
                         data-white-src="./logo/white-text-secondary.png"
                         data-dark-src="./logo/black-text-secondary.png"
-                    />
+                    /> */}
                 </a>
                 {/* actions  */}
                 <div className="flex gap-8 items-center max-md:hidden">
