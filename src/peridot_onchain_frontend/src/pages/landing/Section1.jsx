@@ -18,7 +18,7 @@ export const Section1 = () => {
     return (
         <section className="flex w-full p-4">
             <div className="relative w-full flex justify-center overflow-hidden rounded-2xl">
-                <div className="container flex justify-center items-center px-8 h-[80dvh]  max-h-[800px]">
+                <div className="container flex justify-center items-center px-8 h-[80dvh]">
                     <div className="w-[45rem] text-center flex flex-col gap-6 ">
                         <div className="mb-5">
                             <label className='shadow-xl shadow-accent_primary/30 py-2 px-4 rounded-lg ring-1 ring-accent_primary/30 text-base'>Peridot is now in Alpha version</label>
