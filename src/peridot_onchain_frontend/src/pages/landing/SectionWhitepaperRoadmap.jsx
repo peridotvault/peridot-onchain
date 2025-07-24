@@ -20,8 +20,8 @@ export const SectionWhitepaperRoadmap = () => {
 
         <div className='w-full flex justify-center py-24'>
             <div className="max-w-[1200px] w-full grid grid-cols-2 max-md:grid-cols-1 gap-8 px-8">
-                <ComponentSection id={"whitepaper"} title="Whitepaper" description={"Lorem ipsum, dolor sit amet consectetur adipisicing elit. Soluta suscipit id perspiciatis molestiae modi ullam quisquam ratione sed doloremque amet."} hookText="Read Now" href={"#"} />
-                <ComponentSection id={"roadmap"} title="Roadmap" description="Explore the PeridotVault Roadmap, focussing on contributions by the Antigane Inc. The roadmap is split into fourth themes, each highlighting upcoming milestones." hookText="Get into it" href={"#"} />
+                <ComponentSection id={"whitepaper"} title="Whitepaper" description={"Explore the vision, technology, and economics behind PeridotVault. Our whitepaper details how we’re building the future of gaming—secure, decentralized, and player-first."} hookText="Read Now" href={"#"} />
+                <ComponentSection id={"roadmap"} title="Roadmap" description="From concept to reality, our roadmap reflects our commitment to innovation and transparency. Track every stage as PeridotVault evolves." hookText="Get into it" href={"#"} />
             </div>
         </div>
     )

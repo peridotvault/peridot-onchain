@@ -9,7 +9,7 @@ export const Footer = () => {
 
                 {/* mntap */}
                 <div className=" flex gap-10 mb-10">
-                    <p className="text-3xl w-1/2 max-md:w-full">Connect with us to create incredible, bold and impactful game that aligns with your values and exceeds standards</p>
+                    <p className="text-3xl w-3/4 max-md:w-full">Connect with us to create incredible, bold and impactful game that aligns with your values and exceeds standards</p>
                 </div>
                 <div className=" text-lg">
                     <p>Created by Antigane Inc</p>

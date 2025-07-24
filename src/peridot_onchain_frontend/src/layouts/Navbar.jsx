@@ -43,7 +43,7 @@ export const Navbar = () => {
                                 as="button"
                                 className=""
                                 color="#90EE90"
-                                speed="3s"
+                                speed="2s"
                             >
                                 Download
                             </StarBorder>

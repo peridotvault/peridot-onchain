@@ -55,7 +55,7 @@ export const CarouselCard = () => {
                             className="w-[200px] flex-shrink-0"
                         >
                             <div className="bg-background_secondary rounded-2xl shadow-lg overflow-hidden h-full aspect-[3/4] flex flex-col justify-between">
-                                <img src={item.img_url} className="w-full h-full object-cover opacity-70" alt={item.alt} />
+                                <img draggable={false} src={item.img_url} className="w-full h-full object-cover opacity-70" alt={item.alt} />
                             </div>
                         </div>
                     ))}
