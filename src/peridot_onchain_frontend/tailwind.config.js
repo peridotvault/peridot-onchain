@@ -17,7 +17,7 @@ export default {
 
         "background_disabled": "#333333",
         "text": "var(--text)",
-        "text_disabled": "#b5b5b5a4",
+        "text_disabled": "gray",
 
         "shadow_primary": "#0F120F",
         "shadow_secondary": "#2A3B30",
@@ -44,17 +44,23 @@ export default {
         // green background 
         "sunken-md-green": "inset 5px 5px 10px #2e483a, inset -5px -5px 10px #3e624e",
       },
-      keyframes: {
-        shine: {
-          '0%': { 'background-position': '100%' },
-          '100%': { 'background-position': '-100%' },
-        },
-      },
       animation: {
-        shine: 'shine 5s linear infinite',
+        'star-movement-bottom': 'star-movement-bottom linear infinite alternate',
+        'star-movement-top': 'star-movement-top linear infinite alternate',
+      },
+      keyframes: {
+        'star-movement-bottom': {
+          '0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+          '100%': { transform: 'translate(-100%, 0%)', opacity: '0' },
+        },
+        'star-movement-top': {
+          '0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+          '100%': { transform: 'translate(100%, 0%)', opacity: '0' },
+        },
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar-hide')
+  ],
 }
-

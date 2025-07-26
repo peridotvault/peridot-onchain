@@ -1,9 +1,9 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 import { MainLayout } from './layouts/MainLayout';
-import { LandingPage } from './pages/LandingPage';
+import { LandingPage } from './pages/landing/_LandingPage';
 import { NotFound } from './pages/additional/NotFound';
-import { DownloadPage } from './pages/DownloadPage';
+import { AiPage } from './pages/ai/_AiPage';
 
 
 const router = createBrowserRouter([
@@ -16,8 +16,8 @@ const router = createBrowserRouter([
                 element: <LandingPage />
             },
             {
-                path: "download",
-                element: <DownloadPage />
+                path: "ai",
+                element: <AiPage />
             },
             {
                 path: "*",
