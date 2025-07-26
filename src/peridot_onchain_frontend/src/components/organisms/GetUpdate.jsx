@@ -25,13 +25,16 @@ export const GetUpdate = () => {
                         pauseOnHover={false}
                     >
                         <Card>
-                            <h3>Update</h3>
+                            <h3 >Update</h3>
+                            {/* <img src="./assets/pages/GameVault.png" alt="" /> */}
                         </Card>
                         <Card>
-                            <h3>Insights</h3>
+                            <h3 >Insights</h3>
+                            {/* <img src="./assets/pages/NativeWallet.png" alt="" /> */}
                         </Card>
                         <Card>
-                            <h3>Announcements</h3>
+                            <h3 >Announcements</h3>
+                            {/* <img src="./assets/pages/Library.png" alt="" /> */}
                         </Card>
                     </CardSwap>
                 </div>
