@@ -1,70 +1,75 @@
 import Text "mo:base/Text";
+import HashMap "mo:base/HashMap";
 import Core "./../../core/Core";
 
 module {
-    public type AnnouncementId = Text;
-    //  =====================================
-    //  =====================================
-    // Developer ============================
-    public type Developer = {
-        developer_website : Text;
-        developer_bio : Text;
-        total_follower : Nat;
-        joined_date : Core.Timestamp;
-        announcements : ?[AnnouncementId];
-    };
+  public type FollowsHashMap = HashMap.HashMap<Text, DeveloperFollow>;
+  public type AnnouncementsHashMap = HashMap.HashMap<Text, Announcement>;
+  public type InteractionsHashMap = HashMap.HashMap<Text, AnnouncementInteraction>;
 
-    //  =====================================
-    //  =====================================
-    // Developer Follower ===================
-    public type DeveloperFollow = {
-        developer_principal_id : Core.UserPrincipal;
-        follower_principal_id : Core.UserPrincipal;
-        created_at : Core.Timestamp;
-    };
+  public type AnnouncementId = Text;
+  //  =====================================
+  //  =====================================
+  // Developer ============================
+  public type Developer = {
+    developer_website : Text;
+    developer_bio : Text;
+    total_follower : Nat;
+    joined_date : Core.Timestamp;
+    announcements : ?[AnnouncementId];
+  };
 
-    //  =====================================
-    //  =====================================
-    // Announcements ==============
-    public type Announcement = {
-        id : AnnouncementId;
-        developer_principal_id : Core.UserPrincipal;
-        cover_image : Text;
-        headline : Text;
-        content : Text;
-        total_likes : Nat;
-        total_dislikes : Nat;
-        created_at : Core.Timestamp;
-    };
+  //  =====================================
+  //  =====================================
+  // Developer Follower ===================
+  public type DeveloperFollow = {
+    developer_principal_id : Core.UserId;
+    follower_principal_id : Core.UserId;
+    created_at : Core.Timestamp;
+  };
 
-    // Separated interaction records
-    public type AnnouncementInteraction = {
-        announcement_id : AnnouncementId;
-        user_principal_id : Core.UserPrincipal;
-        interaction_type : InteractionType;
-        created_at : Core.Timestamp;
-    };
+  //  =====================================
+  //  =====================================
+  // Announcements ==============
+  public type Announcement = {
+    id : AnnouncementId;
+    developer_principal_id : Core.UserId;
+    cover_image : Text;
+    headline : Text;
+    content : Text;
+    total_likes : Nat;
+    total_dislikes : Nat;
+    created_at : Core.Timestamp;
+  };
 
-    public type InteractionType = {
-        #like;
-        #dislike;
-        #comment : Text;
-    };
+  // Separated interaction records
+  public type AnnouncementInteraction = {
+    announcement_id : AnnouncementId;
+    user_principal_id : Core.UserId;
+    interaction_type : InteractionType;
+    created_at : Core.Timestamp;
+  };
 
-    // // Announcement Comment =================
-    // public type AnnouncementComment = {
-    //     user_principal_id : Core.UserPrincipal;
-    //     comment : Text;
-    //     created_at : Core.Timestamp;
-    // };
+  public type InteractionType = {
+    #like;
+    #dislike;
+    #comment : Text;
+  };
 
-    // // Announcement Like ====================
-    // public type AnnouncementLike = {
-    //     user_principal_id : Core.UserPrincipal;
-    // };
+  // // Announcement Comment =================
+  // public type AnnouncementComment = {
+  //     user_principal_id : Core.UserId;
+  //     comment : Text;
+  //     created_at : Core.Timestamp;
+  // };
 
-    // // Announcement Dislike =================
-    // public type AnnouncementDislike = {
-    //     user_principal_id : Core.UserPrincipal;
-    // };
+  // // Announcement Like ====================
+  // public type AnnouncementLike = {
+  //     user_principal_id : Core.UserId;
+  // };
+
+  // // Announcement Dislike =================
+  // public type AnnouncementDislike = {
+  //     user_principal_id : Core.UserId;
+  // };
 };
