@@ -6,7 +6,10 @@
     },
     "peridot_app": {
       "main": "src/peridot_onchain_backend/app/main.mo",
-      "type": "motoko"
+      "type": "motoko",
+      "dependencies": [
+        "peridot_user"
+      ]
     },
     "peridot_onchain_frontend": {
       "dependencies": [

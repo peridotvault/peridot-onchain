@@ -5,9 +5,9 @@ module {
   public type FriendsHashMap = HashMap.HashMap<Text, Friend>;
 
   public type Friend = {
-    user1_principal_id : Core.UserId;
-    user2_principal_id : Core.UserId;
+    user1Id : Core.UserId;
+    user2Id : Core.UserId;
     status : Core.Status;
-    created_at : Core.Timestamp;
+    createdAt : Core.Timestamp;
   };
 };

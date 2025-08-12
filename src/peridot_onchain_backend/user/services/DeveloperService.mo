@@ -4,54 +4,102 @@ import DeveloperTypes "../types/DeveloperTypes";
 import Core "../../core/Core";
 import Time "mo:base/Time";
 import Principal "mo:base/Principal";
-import Int "mo:base/Int";
-import Array "mo:base/Array";
-import Buffer "mo:base/Buffer";
+import TokenLedger "./../../shared/TokenLedger";
+// import Int "mo:base/Int";
+// import Array "mo:base/Array";
+// import Buffer "mo:base/Buffer";
+// import AppAnnouncement "../../app/types/AppAnnouncement";
 
 module {
   type ApiResponse<T> = Core.ApiResponse<T>;
   type UserType = UserTypes.User;
   type DeveloperType = DeveloperTypes.Developer;
 
+  public func merchantAccount(self : Principal) : TokenLedger.Account__1 {
+    { owner = self; subaccount = null };
+  };
+
   // create
-  public func createDeveloperProfile(users : UserTypes.UsersHashMap, userId : Core.UserId, website : Text, bio : Text) : ApiResponse<UserType> {
+  public func createDeveloperProfile(users : UserTypes.UsersHashMap, userId : Core.UserId, website : Text, bio : Text, tokenLedgerCanister : Text, spenderPrincipal : Principal, priceUpgradeToDeveloperAccount : Nat, merchant : Principal) : async ApiResponse<UserType> {
+    let tokenLedgerService : TokenLedger.Self = actor (tokenLedgerCanister);
+
+    // 1. check if user already register
     switch (users.get(userId)) {
       case (null) {
         return #err(#NotFound("User not found"));
       };
       case (?existing) {
-        let newDeveloper : DeveloperType = {
-          developer_website = website;
-          developer_bio = bio;
-          total_follower = 0;
-          joined_date = Time.now();
-          announcements = null;
+        // 2. check allowance user → canister
+        let userAccount : TokenLedger.Account__1 = {
+          owner = userId;
+          subaccount = null;
+        };
+        let spender : TokenLedger.Account__1 = {
+          owner = spenderPrincipal;
+          subaccount = null;
         };
 
-        let updatedUser : UserType = {
-          existing with
-          developer = ?newDeveloper;
+        let allow = await tokenLedgerService.icrc2_allowance({
+          account = userAccount;
+          spender = spender;
+        });
+
+        if (allow.allowance < priceUpgradeToDeveloperAccount) {
+          return #err(#NotAuthorized("Insufficient allowance; please approve first"));
         };
 
-        users.put(userId, updatedUser);
-        #ok(updatedUser);
+        // 3) take token: transfer_from(user → merchant)
+        let res = await tokenLedgerService.icrc2_transfer_from({
+          from = userAccount;
+          to = merchantAccount(merchant);
+          amount = priceUpgradeToDeveloperAccount;
+          fee = null;
+          memo = null;
+          created_at_time = null;
+          spender_subaccount = null;
+        });
+
+        // 4) check is error
+        switch (res) {
+          case (#Err e) {
+            return #err(#StorageError("Ledger transfer_from failed " # debug_show (e)));
+          };
+          case (#Ok _idx) {
+            // 5) update data
+            let newDeveloper : DeveloperType = {
+              developerWebsite = website;
+              developerBio = bio;
+              totalFollower = 0;
+              joinedDate = Time.now();
+              announcements = null;
+            };
+
+            let updatedUser : UserType = {
+              existing with
+              developer = ?newDeveloper;
+            };
+
+            users.put(userId, updatedUser);
+            #ok(updatedUser);
+          };
+        };
       };
     };
   };
 
-  public func createFollowDeveloper(users : UserTypes.UsersHashMap, follows : DeveloperTypes.FollowsHashMap, userId : Core.UserId, developer_principal : Principal) : ApiResponse<DeveloperTypes.DeveloperFollow> {
-    if (Principal.equal(userId, developer_principal)) {
+  public func updateFollowDeveloper(users : UserTypes.UsersHashMap, follows : DeveloperTypes.FollowsHashMap, userId : Core.UserId, developerId : Principal) : ApiResponse<DeveloperTypes.DeveloperFollow> {
+    if (Principal.equal(userId, developerId)) {
       return #err(#InvalidInput("Cannot follow yourself"));
     };
 
-    let followId = getFollowId(developer_principal, userId);
+    let followId = getFollowId(developerId, userId);
 
     switch (follows.get(followId)) {
       case (?_) {
         return #err(#AlreadyExists("Already following this developer"));
       };
       case (null) {
-        switch (users.get(developer_principal)) {
+        switch (users.get(developerId)) {
           case (null) {
             return #err(#NotFound("Developer not found"));
           };
@@ -62,9 +110,9 @@ module {
               };
               case (?dev) {
                 let newFollow : DeveloperTypes.DeveloperFollow = {
-                  developer_principal_id = developer_principal;
-                  follower_principal_id = userId;
-                  created_at = Time.now();
+                  developerId = developerId;
+                  followerId = userId;
+                  createdAt = Time.now();
                 };
 
                 follows.put(followId, newFollow);
@@ -72,7 +120,7 @@ module {
                 // Update developer's follower count
                 let updatedDev : DeveloperType = {
                   dev with
-                  total_follower = dev.total_follower + 1;
+                  totalFollower = dev.totalFollower + 1;
                 };
 
                 let updatedUser : UserType = {
@@ -80,7 +128,7 @@ module {
                   developer = ?updatedDev;
                 };
 
-                users.put(developer_principal, updatedUser);
+                users.put(developerId, updatedUser);
                 #ok(newFollow);
               };
             };
@@ -90,123 +138,123 @@ module {
     };
   };
 
-  public func createAnnouncement(users : UserTypes.UsersHashMap, announcements : DeveloperTypes.AnnouncementsHashMap, userId : Core.UserId, cover_image : Text, headline : Text, content : Text) : ApiResponse<DeveloperTypes.Announcement> {
-    switch (users.get(userId)) {
-      case (null) {
-        return #err(#NotFound("User not found"));
-      };
-      case (?user) {
-        switch (user.developer) {
-          case (null) {
-            return #err(#NotFound("Developer profile not found"));
-          };
-          case (?dev) {
-            let timestamp = Time.now();
-            let announcement_id = generateAnnouncementId(userId, timestamp);
+  // public func createAnnouncement(users : UserTypes.UsersHashMap, announcements : AppAnnouncement.AnnouncementsHashMap, userId : Core.UserId, coverImage : Text, headline : Text, content : Text) : ApiResponse<DeveloperTypes.Announcement> {
+  //   switch (users.get(userId)) {
+  //     case (null) {
+  //       return #err(#NotFound("User not found"));
+  //     };
+  //     case (?user) {
+  //       switch (user.developer) {
+  //         case (null) {
+  //           return #err(#NotFound("Developer profile not found"));
+  //         };
+  //         case (?dev) {
+  //           let timestamp = Time.now();
+  //           let announcementId = generateAnnouncementId(userId, timestamp);
 
-            let newAnnouncement : DeveloperTypes.Announcement = {
-              id = announcement_id;
-              developer_principal_id = userId;
-              cover_image = cover_image;
-              headline = headline;
-              content = content;
-              total_likes = 0;
-              total_dislikes = 0;
-              created_at = timestamp;
-            };
+  //           let newAnnouncement : DeveloperTypes.Announcement = {
+  //             id = announcementId;
+  //             developerId = userId;
+  //             coverImage = coverImage;
+  //             headline = headline;
+  //             content = content;
+  //             totalLikes = 0;
+  //             totalDislikes = 0;
+  //             createdAt = timestamp;
+  //           };
 
-            announcements.put(announcement_id, newAnnouncement);
+  //           announcements.put(announcementId, newAnnouncement);
 
-            // Properly handle optional announcements array
-            let currentAnnouncements = switch (dev.announcements) {
-              case (null) { [] };
-              case (?arr) { arr };
-            };
+  //           // Properly handle optional announcements array
+  //           let currentAnnouncements = switch (dev.announcements) {
+  //             case (null) { [] };
+  //             case (?arr) { arr };
+  //           };
 
-            // Update developer's announcements list
-            let updatedDev : DeveloperTypes.Developer = {
-              dev with
-              announcements = ?Array.append<DeveloperTypes.AnnouncementId>(currentAnnouncements, [announcement_id]);
-            };
+  //           // Update developer's announcements list
+  //           let updatedDev : DeveloperTypes.Developer = {
+  //             dev with
+  //             announcements = ?Array.append<DeveloperTypes.AnnouncementId>(currentAnnouncements, [announcementId]);
+  //           };
 
-            let updatedUser : UserType = {
-              user with
-              developer = ?updatedDev;
-            };
+  //           let updatedUser : UserType = {
+  //             user with
+  //             developer = ?updatedDev;
+  //           };
 
-            users.put(userId, updatedUser);
-            #ok(newAnnouncement);
-          };
-        };
-      };
-    };
-  };
+  //           users.put(userId, updatedUser);
+  //           #ok(newAnnouncement);
+  //         };
+  //       };
+  //     };
+  //   };
+  // };
 
-  public func createAnnouncementInteraction(announcements : DeveloperTypes.AnnouncementsHashMap, interactions : DeveloperTypes.InteractionsHashMap, userId : Core.UserId, announcement_id : DeveloperTypes.AnnouncementId, interaction_type : DeveloperTypes.InteractionType) : ApiResponse<DeveloperTypes.AnnouncementInteraction> {
-    switch (announcements.get(announcement_id)) {
-      case (null) {
-        return #err(#NotFound("Announcement not found"));
-      };
-      case (?announcement) {
-        let interactionId = generateInteractionId(announcement_id, userId);
+  // public func createAnnouncementInteraction(announcements : DeveloperTypes.AnnouncementsHashMap, interactions : DeveloperTypes.InteractionsHashMap, userId : Core.UserId, announcementId : DeveloperTypes.AnnouncementId, interactionType : DeveloperTypes.InteractionType) : ApiResponse<DeveloperTypes.AnnouncementInteraction> {
+  //   switch (announcements.get(announcementId)) {
+  //     case (null) {
+  //       return #err(#NotFound("Announcement not found"));
+  //     };
+  //     case (?announcement) {
+  //       let interactionId = generateInteractionId(announcementId, userId);
 
-        // Remove any existing interaction
-        switch (interactions.get(interactionId)) {
-          case (?existing) {
-            // Update counts based on previous interaction
-            let updatedAnnouncement = switch (existing.interaction_type) {
-              case (#like) {
-                { announcement with total_likes = announcement.total_likes - 1 };
-              };
-              case (#dislike) {
-                {
-                  announcement with total_dislikes = announcement.total_dislikes - 1
-                };
-              };
-              case (#comment(_)) { announcement };
-            };
-            announcements.put(announcement_id, updatedAnnouncement);
-          };
-          case (null) {};
-        };
+  //       // Remove any existing interaction
+  //       switch (interactions.get(interactionId)) {
+  //         case (?existing) {
+  //           // Update counts based on previous interaction
+  //           let updatedAnnouncement = switch (existing.interactionType) {
+  //             case (#like) {
+  //               { announcement with totalLikes = announcement.totalLikes - 1 };
+  //             };
+  //             case (#dislike) {
+  //               {
+  //                 announcement with totalDislikes = announcement.totalDislikes - 1
+  //               };
+  //             };
+  //             case (#comment(_)) { announcement };
+  //           };
+  //           announcements.put(announcementId, updatedAnnouncement);
+  //         };
+  //         case (null) {};
+  //       };
 
-        let newInteraction : DeveloperTypes.AnnouncementInteraction = {
-          announcement_id = announcement_id;
-          user_principal_id = userId;
-          interaction_type = interaction_type;
-          created_at = Time.now();
-        };
+  //       let newInteraction : DeveloperTypes.AnnouncementInteraction = {
+  //         announcementId = announcementId;
+  //         userId = userId;
+  //         interactionType = interactionType;
+  //         createdAt = Time.now();
+  //       };
 
-        // Update announcement counts
-        let finalAnnouncement = switch (interaction_type) {
-          case (#like) {
-            { announcement with total_likes = announcement.total_likes + 1 };
-          };
-          case (#dislike) {
-            {
-              announcement with total_dislikes = announcement.total_dislikes + 1
-            };
-          };
-          case (#comment(_)) { announcement };
-        };
+  //       // Update announcement counts
+  //       let finalAnnouncement = switch (interactionType) {
+  //         case (#like) {
+  //           { announcement with totalLikes = announcement.totalLikes + 1 };
+  //         };
+  //         case (#dislike) {
+  //           {
+  //             announcement with totalDislikes = announcement.totalDislikes + 1
+  //           };
+  //         };
+  //         case (#comment(_)) { announcement };
+  //       };
 
-        interactions.put(interactionId, newInteraction);
-        announcements.put(announcement_id, finalAnnouncement);
-        #ok(newInteraction);
-      };
-    };
-  };
+  //       interactions.put(interactionId, newInteraction);
+  //       announcements.put(announcementId, finalAnnouncement);
+  //       #ok(newInteraction);
+  //     };
+  //   };
+  // };
 
   //   update
-  public func updateUnfollowDeveloper(users : UserTypes.UsersHashMap, follows : DeveloperTypes.FollowsHashMap, userId : Core.UserId, developer_principal : Principal) : ApiResponse<()> {
-    let followId = getFollowId(developer_principal, userId);
+  public func updateUnfollowDeveloper(users : UserTypes.UsersHashMap, follows : DeveloperTypes.FollowsHashMap, userId : Core.UserId, developerId : Principal) : ApiResponse<()> {
+    let followId = getFollowId(developerId, userId);
 
     switch (follows.get(followId)) {
       case (null) {
         return #err(#NotFound("Not following this developer"));
       };
       case (?_) {
-        switch (users.get(developer_principal)) {
+        switch (users.get(developerId)) {
           case (null) {
             return #err(#NotFound("Developer not found"));
           };
@@ -221,7 +269,7 @@ module {
                 // Update developer's follower count
                 let updatedDev : DeveloperTypes.Developer = {
                   dev with
-                  total_follower = dev.total_follower - 1;
+                  totalFollower = if (dev.totalFollower > 0) dev.totalFollower - 1 else 0;
                 };
 
                 let updatedUser : UserType = {
@@ -229,7 +277,7 @@ module {
                   developer = ?updatedDev;
                 };
 
-                users.put(developer_principal, updatedUser);
+                users.put(developerId, updatedUser);
                 #ok(());
               };
             };
@@ -258,95 +306,95 @@ module {
     };
   };
 
-  public func getDeveloperAnnouncements(users : UserTypes.UsersHashMap, announcements : DeveloperTypes.AnnouncementsHashMap, developer_principal : Principal) : ApiResponse<[DeveloperTypes.Announcement]> {
-    switch (users.get(developer_principal)) {
-      case (null) {
-        return #err(#NotFound("Developer not found"));
-      };
-      case (?user) {
-        switch (user.developer) {
-          case (null) {
-            return #err(#NotFound("Developer profile not found"));
-          };
-          case (?dev) {
-            let developerAnnouncements = Buffer.Buffer<DeveloperTypes.Announcement>(0);
+  // public func getDeveloperAnnouncements(users : UserTypes.UsersHashMap, announcements : DeveloperTypes.AnnouncementsHashMap, developer_principal : Principal) : ApiResponse<[DeveloperTypes.Announcement]> {
+  //   switch (users.get(developer_principal)) {
+  //     case (null) {
+  //       return #err(#NotFound("Developer not found"));
+  //     };
+  //     case (?user) {
+  //       switch (user.developer) {
+  //         case (null) {
+  //           return #err(#NotFound("Developer profile not found"));
+  //         };
+  //         case (?dev) {
+  //           let developerAnnouncements = Buffer.Buffer<DeveloperTypes.Announcement>(0);
 
-            // Properly handle optional announcements array
-            switch (dev.announcements) {
-              case (null) {
-                return #ok([]);
-              };
-              case (?announcementIds) {
-                for (announcement_id in announcementIds.vals()) {
-                  switch (announcements.get(announcement_id)) {
-                    case (?announcement) {
-                      developerAnnouncements.add(announcement);
-                    };
-                    case (null) {};
-                  };
-                };
-              };
-            };
-            #ok(Buffer.toArray(developerAnnouncements));
-          };
-        };
-      };
-    };
-  };
+  //           // Properly handle optional announcements array
+  //           switch (dev.announcements) {
+  //             case (null) {
+  //               return #ok([]);
+  //             };
+  //             case (?announcementIds) {
+  //               for (announcementId in announcementIds.vals()) {
+  //                 switch (announcements.get(announcementId)) {
+  //                   case (?announcement) {
+  //                     developerAnnouncements.add(announcement);
+  //                   };
+  //                   case (null) {};
+  //                 };
+  //               };
+  //             };
+  //           };
+  //           #ok(Buffer.toArray(developerAnnouncements));
+  //         };
+  //       };
+  //     };
+  //   };
+  // };
 
-  public func getAnnouncement(announcements : DeveloperTypes.AnnouncementsHashMap, announcement_id : DeveloperTypes.AnnouncementId) : ApiResponse<DeveloperTypes.Announcement> {
-    switch (announcements.get(announcement_id)) {
-      case (null) { #err(#NotFound("Announcement not found")) };
-      case (?announcement) { #ok(announcement) };
-    };
-  };
+  // public func getAnnouncement(announcements : DeveloperTypes.AnnouncementsHashMap, announcementId : DeveloperTypes.AnnouncementId) : ApiResponse<DeveloperTypes.Announcement> {
+  //   switch (announcements.get(announcementId)) {
+  //     case (null) { #err(#NotFound("Announcement not found")) };
+  //     case (?announcement) { #ok(announcement) };
+  //   };
+  // };
 
   private func getFollowId(developer : Principal, follower : Principal) : Text {
     return Principal.toText(developer) # "_" # Principal.toText(follower);
   };
 
-  private func generateAnnouncementId(developer : Principal, timestamp : Int) : DeveloperTypes.AnnouncementId {
-    Principal.toText(developer) # "_" # Int.toText(timestamp);
-  };
+  // private func generateAnnouncementId(developer : Principal, timestamp : Int) : DeveloperTypes.AnnouncementId {
+  //   Principal.toText(developer) # "_" # Int.toText(timestamp);
+  // };
 
-  private func generateInteractionId(announcement_id : DeveloperTypes.AnnouncementId, user : Principal) : Text {
-    announcement_id # "_" # Principal.toText(user);
-  };
+  // private func generateInteractionId(announcementId : DeveloperTypes.AnnouncementId, user : Principal) : Text {
+  //   announcementId # "_" # Principal.toText(user);
+  // };
 
   //   delete
-  public func deleteAnnouncementInteraction(announcements : DeveloperTypes.AnnouncementsHashMap, interactions : DeveloperTypes.InteractionsHashMap, userId : Core.UserId, announcement_id : DeveloperTypes.AnnouncementId) : ApiResponse<()> {
-    let interactionId = generateInteractionId(announcement_id, userId);
+  // public func deleteAnnouncementInteraction(announcements : DeveloperTypes.AnnouncementsHashMap, interactions : DeveloperTypes.InteractionsHashMap, userId : Core.UserId, announcementId : DeveloperTypes.AnnouncementId) : ApiResponse<()> {
+  //   let interactionId = generateInteractionId(announcementId, userId);
 
-    switch (interactions.get(interactionId)) {
-      case (null) {
-        return #err(#NotFound("No interaction found"));
-      };
-      case (?interaction) {
-        switch (announcements.get(announcement_id)) {
-          case (null) {
-            return #err(#NotFound("Announcement not found"));
-          };
-          case (?announcement) {
-            // Update counts based on removed interaction
-            let updatedAnnouncement = switch (interaction.interaction_type) {
-              case (#like) {
-                { announcement with total_likes = announcement.total_likes - 1 };
-              };
-              case (#dislike) {
-                {
-                  announcement with total_dislikes = announcement.total_dislikes - 1
-                };
-              };
-              case (#comment(_)) { announcement };
-            };
+  //   switch (interactions.get(interactionId)) {
+  //     case (null) {
+  //       return #err(#NotFound("No interaction found"));
+  //     };
+  //     case (?interaction) {
+  //       switch (announcements.get(announcementId)) {
+  //         case (null) {
+  //           return #err(#NotFound("Announcement not found"));
+  //         };
+  //         case (?announcement) {
+  //           // Update counts based on removed interaction
+  //           let updatedAnnouncement = switch (interaction.interactionType) {
+  //             case (#like) {
+  //               { announcement with totalLikes = announcement.totalLikes - 1 };
+  //             };
+  //             case (#dislike) {
+  //               {
+  //                 announcement with totalDislikes = announcement.totalDislikes - 1
+  //               };
+  //             };
+  //             case (#comment(_)) { announcement };
+  //           };
 
-            interactions.delete(interactionId);
-            announcements.put(announcement_id, updatedAnnouncement);
-            #ok(());
-          };
-        };
-      };
-    };
-  };
+  //           interactions.delete(interactionId);
+  //           announcements.put(announcementId, updatedAnnouncement);
+  //           #ok(());
+  //         };
+  //       };
+  //     };
+  //   };
+  // };
 
 };

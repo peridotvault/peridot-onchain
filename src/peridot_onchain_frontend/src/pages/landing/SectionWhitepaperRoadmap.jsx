@@ -21,7 +21,7 @@ export const SectionWhitepaperRoadmap = () => {
         <div className='w-full flex justify-center py-24'>
             <div className="max-w-[1200px] w-full grid grid-cols-2 max-md:grid-cols-1 gap-8 px-8">
                 <ComponentSection id={"whitepaper"} title="Whitepaper" description={"Explore the vision, technology, and economics behind PeridotVault. Our whitepaper details how we’re building the future of gaming—secure, decentralized, and player-first."} hookText="Read Now" href={"#"} />
-                <ComponentSection id={"roadmap"} title="Roadmap" description="From concept to reality, our roadmap reflects our commitment to innovation and transparency. Track every stage as PeridotVault evolves." hookText="Get into it" href={"#"} />
+                <ComponentSection id={"roadmap"} title="Roadmap" description="From concept to reality, our roadmap reflects our commitment to innovation and transparency. Track every stage as PeridotVault evolves." hookText="Get into it" href={"/roadmap"} />
             </div>
         </div>
     )

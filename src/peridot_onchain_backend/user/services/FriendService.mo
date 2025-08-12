@@ -22,10 +22,10 @@ module {
       };
       case (null) {
         let newFriend : FriendType = {
-          user1_principal_id = userId;
-          user2_principal_id = to_user;
+          user1Id = userId;
+          user2Id = to_user;
           status = #pending;
-          created_at = Time.now();
+          createdAt = Time.now();
         };
         friends.put(friendId, newFriend);
         #ok(newFriend);
@@ -45,15 +45,15 @@ module {
         if (existing.status != #pending) {
           return #err(#InvalidInput("Friend request is not pending"));
         };
-        if (Principal.notEqual(userId, existing.user2_principal_id)) {
+        if (Principal.notEqual(userId, existing.user2Id)) {
           return #err(#NotAuthorized("Not authorized to accept this request"));
         };
 
         let updatedFriend : FriendType = {
-          user1_principal_id = existing.user1_principal_id;
-          user2_principal_id = existing.user2_principal_id;
+          user1Id = existing.user1Id;
+          user2Id = existing.user2Id;
           status = #accept;
-          created_at = existing.created_at;
+          createdAt = existing.createdAt;
         };
         friends.put(friendId, updatedFriend);
         #ok(updatedFriend);
@@ -74,8 +74,8 @@ module {
 
     for ((_, friend) in friends.entries()) {
       if (
-        Principal.equal(userId, friend.user1_principal_id) or
-        Principal.equal(userId, friend.user2_principal_id)
+        Principal.equal(userId, friend.user1Id) or
+        Principal.equal(userId, friend.user2Id)
       ) {
         userFriends.add(friend);
       };
@@ -93,8 +93,8 @@ module {
 
     for ((_, friend) in friends.entries()) {
       if (
-        Principal.equal(userId, friend.user1_principal_id) or
-        Principal.equal(userId, friend.user2_principal_id) and friend.status == #pending
+        Principal.equal(userId, friend.user1Id) or
+        Principal.equal(userId, friend.user2Id) and friend.status == #pending
       ) {
         userFriends.add(friend);
       };
@@ -117,8 +117,8 @@ module {
       };
       case (?existing) {
         if (
-          Principal.notEqual(userId, existing.user1_principal_id) and
-          Principal.notEqual(userId, existing.user2_principal_id)
+          Principal.notEqual(userId, existing.user1Id) and
+          Principal.notEqual(userId, existing.user2Id)
         ) {
           return #err(#NotAuthorized("Not authorized to remove this friendship"));
         };

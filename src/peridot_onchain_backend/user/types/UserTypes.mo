@@ -1,85 +1,68 @@
 import Text "mo:base/Text";
 import HashMap "mo:base/HashMap";
 import Core "./../../core/Core";
-import Developer "./DeveloperTypes";
+import DeveloperTypes "DeveloperTypes";
 
 module {
+  // ===== Aliases & Maps =====
   public type UsersHashMap = HashMap.HashMap<Principal, User>;
-
   public type Username = Text;
 
+  // ===== DTOs =====
   public type CreateUser = {
     username : Username;
-    display_name : Text;
+    displayName : Text;
     email : Text;
-    birth_date : Core.Timestamp;
+    birthDate : Core.Timestamp;
     gender : Gender;
     country : Core.Country;
   };
 
   public type UpdateUser = {
     username : Username;
-    display_name : Text;
+    displayName : Text;
     email : Text;
-    image_url : ?Text;
-    background_image_url : ?Text;
-    user_demographics : UserDemographic;
+    imageUrl : ?Text;
+    backgroundImageUrl : ?Text;
+    userDemographics : UserDemographic;
   };
 
-  //  =====================================
-  //  =====================================
-  // User =================================
+  // ===== Core Types =====
   public type User = {
     username : Username;
-    display_name : Text;
+    displayName : Text;
     email : Text;
-    image_url : ?Text;
-    background_image_url : ?Text;
-    total_playtime : ?Nat;
-    created_at : Core.Timestamp;
-    user_demographics : UserDemographic;
-    user_interactions : ?[UserInteraction];
-    user_libraries : ?[UserLibrary];
-    developer : ?Developer.Developer;
+    imageUrl : ?Text;
+    backgroundImageUrl : ?Text;
+    totalPlaytime : ?Nat;
+    createdAt : Core.Timestamp;
+    userDemographics : UserDemographic;
+    userInteractions : ?[UserInteraction];
+    userLibraries : ?[UserLibrary];
+    developer : ?DeveloperTypes.Developer;
   };
 
-  // User Demographics =========================
   public type UserDemographic = {
-    birth_date : Core.Timestamp;
+    birthDate : Core.Timestamp;
     gender : Gender;
     country : Core.Country;
   };
 
-  public type Gender = {
-    #male;
-    #female;
-    #other;
-  };
+  public type Gender = { #male; #female; #other };
 
-  // User Interactions =========================
   public type UserInteraction = {
-    app_id : Core.UserId;
+    appId : Core.AppId;
     interaction : Interaction;
-    created_at : Core.Timestamp;
+    createdAt : Core.Timestamp;
   };
 
-  public type Interaction = {
-    #view;
-    #purchase;
-    #play;
-  };
+  public type Interaction = { #view; #purchase; #play };
 
-  // User Library =========================
   public type UserLibrary = {
-    app_id : Core.AppId;
-    playtime_minute : Nat;
+    appId : Core.AppId;
+    playtimeMinute : Nat;
     lastPlayed : ?Core.Timestamp;
-    current_version : Core.Version;
-    created_at : Core.Timestamp;
+    currentVersion : Core.Version;
+    createdAt : Core.Timestamp;
   };
-
-  //  =====================================
-  //  =====================================
-  // User Friends =========================
-
 };
