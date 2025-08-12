@@ -3,7 +3,7 @@ import Char "mo:base/Char";
 import UserType "../types/UserTypes";
 import Core "./../../core/Core";
 
-module {
+module UserHandlerModule {
   public class UserHandler() {
 
     type ApiResponse<T> = Core.ApiResponse<T>;
@@ -57,7 +57,7 @@ module {
       };
 
       // Validate display name length if provided
-      switch (user.display_name) {
+      switch (user.displayName) {
         case (name) {
           if (name.size() > 50) {
             return #err(#InvalidInput("Display name cannot exceed 50 characters"));

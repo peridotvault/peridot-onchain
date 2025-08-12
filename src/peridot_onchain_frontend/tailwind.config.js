@@ -23,6 +23,7 @@ export default {
         "shadow_secondary": "#2A3B30",
 
         // danger
+        "success": "#90EE90",
         "danger": "#c5604c",
         "warning": "#deb887",
       },

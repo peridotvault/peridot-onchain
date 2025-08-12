@@ -1,7 +1,13 @@
 import React from 'react'
+import { RoadmapSectionWelcome } from './RoadmapSectionWelcome'
+import { RoadmapSectionContent } from './RoadmapSectionContent'
 
-export const _RoadmapPage = () => {
+export const RoadmapPage = () => {
   return (
-    <div>_RoadmapPage</div>
+    <div>
+      <RoadmapSectionWelcome />
+      <RoadmapSectionContent />
+
+    </div>
   )
 }
