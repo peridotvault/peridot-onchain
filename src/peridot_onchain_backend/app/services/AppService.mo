@@ -35,6 +35,7 @@ module AppServiceModule {
       title = createApp.title;
       description = createApp.description;
       coverImage = createApp.coverImage;
+      bannerImage = createApp.bannerImage;
       previews = createApp.previews;
       price = createApp.price;
       requiredAge = createApp.requiredAge;

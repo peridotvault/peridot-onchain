@@ -13,6 +13,7 @@ module AppTypesModule {
   public type CreateApp = {
     title : Text;
     description : Text;
+    bannerImage : Text;
     coverImage : Text;
     previews : [Preview];
     price : Nat;
@@ -20,7 +21,7 @@ module AppTypesModule {
     releaseDate : Core.Timestamp;
     status : Core.AppStatus;
     createdAt : Core.Timestamp;
-    category : Core.Category;
+    category : [Core.Category];
     appTags : [Core.Tag];
     distributions : [Distribution];
   };
@@ -33,6 +34,7 @@ module AppTypesModule {
     developerId : Core.UserId;
     title : Text;
     description : Text;
+    bannerImage : Text;
     coverImage : Text;
     previews : [Preview];
     price : Nat;
@@ -40,7 +42,7 @@ module AppTypesModule {
     releaseDate : Core.Timestamp;
     status : Core.AppStatus;
     createdAt : Core.Timestamp;
-    category : Core.Category;
+    category : [Core.Category];
     appTags : [Core.Tag];
     distributions : [Distribution];
     appRatings : ?[AppRating];
@@ -50,7 +52,13 @@ module AppTypesModule {
   // Preview
   // =========================
   public type Preview = {
+    kind : Media;
     url : Text;
+  };
+
+  public type Media = {
+    #image;
+    #video;
   };
 
   // =========================
