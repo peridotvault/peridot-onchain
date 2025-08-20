@@ -10,6 +10,8 @@ import Buffer "mo:base/Buffer";
 import HashMap "mo:base/HashMap";
 import Hash "mo:base/Hash";
 import Text "mo:base/Text";
+import Array "mo:base/Array";
+import Principal "mo:base/Principal";
 import PurchaseTypes "../types/PurchaseTypes";
 
 module AppServiceModule {
@@ -18,7 +20,7 @@ module AppServiceModule {
   type PurchaseType = PurchaseTypes.Purchase;
 
   // CREATE
-  public func createApp(apps : AppTypes.AppHashMap, developerId : Core.UserId, createApp : AppTypes.CreateApp, appId : Core.AppId) : async ApiResponse<AppType> {
+  public func createApp(apps : AppTypes.AppHashMap, developerId : Core.DeveloperId, input : AppTypes.CreateApp, appId : Core.AppId) : async ApiResponse<AppType> {
 
     let isUserDeveloper = await PeridotUser.getDeveloperProfile(developerId);
 
@@ -32,19 +34,19 @@ module AppServiceModule {
     let appNewData : AppType = {
       appId = appId;
       developerId = developerId;
-      title = createApp.title;
-      description = createApp.description;
-      coverImage = createApp.coverImage;
-      bannerImage = createApp.bannerImage;
-      previews = createApp.previews;
-      price = createApp.price;
-      requiredAge = createApp.requiredAge;
-      releaseDate = createApp.releaseDate;
-      status = createApp.status;
+      title = input.title;
+      description = input.description;
+      coverImage = null;
+      bannerImage = null;
+      previews = null;
+      price = null;
+      requiredAge = null;
+      releaseDate = null;
+      status = #notPublish;
       createdAt = Time.now();
-      category = createApp.category;
-      appTags = createApp.appTags;
-      distributions = createApp.distributions;
+      category = null;
+      appTags = null;
+      distributions = null;
       appRatings = null;
     };
 
@@ -53,8 +55,107 @@ module AppServiceModule {
     #ok(appNewData);
   };
 
+  public func updateApp(
+    apps : AppTypes.AppHashMap,
+    developerId : Core.DeveloperId,
+    appId : Core.AppId,
+    input : AppTypes.UpdateApp,
+  ) : async ApiResponse<AppType> {
+
+    // 1) pastikan caller adalah developer valid
+    let isUserDeveloper = await PeridotUser.getDeveloperProfile(developerId);
+    switch (isUserDeveloper) {
+      case (#err(e)) { return #err(e) };
+      case (#ok(_dev)) {};
+    };
+
+    // 2) ambil app existing
+    let existingOpt = apps.get(appId);
+    switch (existingOpt) {
+      case null {
+        return #err(#NotFound("App with ID " # Nat.toText(appId) # " not found"));
+      };
+      case (?app) {
+        // 3) otorisasi: hanya pemilik app yg boleh update
+        if (app.developerId != developerId) {
+          return #err(#Unauthorized("Forbidden: you are not the owner of this app"));
+        };
+
+        let priceMerged : ?Nat = switch (input.price) {
+          case (null) app.price; // pertahankan lama
+          case (?p) ?(p * Core.Decimal); // skala ke subunit
+        };
+
+        // 4) merge field opsional
+        let updatedApp : AppType = {
+          appId = appId;
+          developerId = app.developerId;
+          title = input.title;
+          description = input.description;
+          coverImage = input.coverImage;
+          bannerImage = input.bannerImage;
+          previews = input.previews;
+          price = priceMerged;
+          requiredAge = input.requiredAge;
+          releaseDate = input.releaseDate;
+          status = input.status;
+          createdAt = app.createdAt;
+          category = input.category;
+          appTags = input.appTags;
+          distributions = input.distributions;
+          appRatings = app.appRatings;
+        };
+
+        // 5) simpan
+        apps.put(appId, updatedApp);
+        return #ok(updatedApp);
+      };
+    };
+  };
+
+  public func deleteApp(
+    apps : AppTypes.AppHashMap,
+    developerId : Core.DeveloperId,
+    appId : Core.AppId,
+  ) : async ApiResponse<Text> {
+
+    // 1) get app existing
+    let existingOpt = apps.get(appId);
+    switch (existingOpt) {
+      case null {
+        return #err(#NotFound("App with ID " # Nat.toText(appId) # " not found"));
+      };
+      case (?app) {
+        // 2) otorization: hanya pemilik app yg boleh update
+        if (app.developerId != developerId) {
+          return #err(#Unauthorized("Forbidden: you are not the developer of this app"));
+        };
+
+        // 3) delete
+        apps.delete(appId);
+        return #ok("Delete App Successfully");
+      };
+    };
+  };
+
   // GET
   // Developer
+  public func getAppByDeveloperId(apps : AppTypes.AppHashMap, developerId : Core.DeveloperId) : ApiResponse<[AppType]> {
+    var result : [AppTypes.App] = [];
+
+    // Iterasi semua entry di HashMap
+    for ((_, app) in apps.entries()) {
+      if (app.developerId == developerId) {
+        result := Array.append<AppTypes.App>(result, [app]);
+      };
+    };
+
+    if (Array.size(result) == 0) {
+      return #err(#NotFound("No apps found for developer " # Principal.toText(developerId)));
+    };
+
+    return #ok(result);
+  };
 
   // User
   public func getAllApps(apps : AppTypes.AppHashMap) : ApiResponse<[AppType]> {

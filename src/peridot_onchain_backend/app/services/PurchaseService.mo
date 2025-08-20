@@ -13,12 +13,12 @@ module PurchaseServiceModule {
   type AppType = AppTypes.App;
 
   // peridot account (peridot address)
-  public func merchantAccount(self : Principal) : TokenLedger.Account {
+  public func merchantAccount(self : Principal) : TokenLedger.Account__1 {
     { owner = self; subaccount = null };
   };
 
   //   create
-  public func buyApp(purchases : PurchaseTypes.PurchaseHashMap, apps : AppTypes.AppHashMap, appId : Core.AppId, userId : Core.UserId, tokenLedger : Text, spenderPrincipal : Core.UserId) : async ApiResponse<PurchaseType> {
+  public func buyApp(purchases : PurchaseTypes.PurchaseHashMap, apps : AppTypes.AppHashMap, appId : Core.AppId, userId : Core.UserId, tokenLedger : Text, spenderPrincipal : Core.UserId, merchantPrincipal : Principal) : async ApiResponse<PurchaseType> {
     let tokenLedgerService : TokenLedger.Self = actor (tokenLedger);
     // 1) get app
     switch (apps.get(appId)) {
@@ -26,8 +26,15 @@ module PurchaseServiceModule {
         return #err(#NotFound("The App not found"));
       };
       case (?app) {
+        let price : Nat = switch (app.price) {
+          case (null) {
+            // jika "null" artinya belum di-set / tidak untuk dijual
+            return #err(#ValidationError("App price is not set"));
+          };
+          case (?p) { p };
+        };
         // 2) check app price isFree or Nor
-        switch (app.price <= 0) {
+        switch (price <= 0) {
           case (true) {
             let newPurchase : PurchaseType = {
               userId = userId;
@@ -50,11 +57,11 @@ module PurchaseServiceModule {
               case (#err(error)) { return #err(error) };
               case (#ok()) {
                 // 4) check allowance user → canister
-                let userAccount : TokenLedger.Account = {
+                let userAccount : TokenLedger.Account__1 = {
                   owner = userId;
                   subaccount = null;
                 };
-                let spender : TokenLedger.Account = {
+                let spender : TokenLedger.Account__1 = {
                   owner = spenderPrincipal;
                   subaccount = null;
                 };
@@ -63,15 +70,15 @@ module PurchaseServiceModule {
                   account = userAccount;
                   spender;
                 });
-                if (allow.allowance < app.price) {
+                if (allow.allowance < price) {
                   return #err(#NotAuthorized("Insufficient allowance; please approve first"));
                 };
 
                 // 5) take token: transfer_from(user → merchant)
                 let res = await tokenLedgerService.icrc2_transfer_from({
                   from = userAccount;
-                  to = merchantAccount(spenderPrincipal);
-                  amount = app.price;
+                  to = merchantAccount(merchantPrincipal);
+                  amount = price;
                   fee = null;
                   memo = null;
                   created_at_time = null;
@@ -87,7 +94,7 @@ module PurchaseServiceModule {
                     let newPurchase : PurchaseType = {
                       userId = userId;
                       appId = appId;
-                      amount = app.price;
+                      amount = price;
                       purchasedAt = Time.now();
                       txIndex = ?txIndex;
                       memo = null;

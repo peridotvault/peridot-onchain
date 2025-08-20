@@ -62,8 +62,22 @@ persistent actor PeridotApp {
     AppService.getAppById(apps, appId);
   };
 
+  public shared (msg) func getAppByDeveloperId() : async ApiResponse<[AppType]> {
+    AppService.getAppByDeveloperId(apps, msg.caller);
+  };
+
   public shared (msg) func getMyApps() : async ApiResponse<[AppType]> {
     await AppService.getMyApps(apps, purchases, msg.caller);
+  };
+
+  // update
+  public shared (msg) func updateApp(updateApp : AppTypes.UpdateApp, appId : Core.AppId) : async ApiResponse<AppType> {
+    await AppService.updateApp(apps, msg.caller, appId, updateApp);
+  };
+
+  // delete
+  public shared (msg) func deleteApp(appId : Core.AppId) : async ApiResponse<Text> {
+    await AppService.deleteApp(apps, msg.caller, appId);
   };
 
   //  ===============================================================
@@ -72,7 +86,8 @@ persistent actor PeridotApp {
   // create
   public shared (msg) func buyApp(appId : Nat) : async ApiResponse<PurchaseType> {
     let spenderPrincipal = Principal.fromActor(PeridotApp);
-    await PurchaseService.buyApp(purchases, apps, appId, msg.caller, Core.TokenLedgerCanister, spenderPrincipal);
+    let merchant = Principal.fromText(Core.PeridotAccount);
+    await PurchaseService.buyApp(purchases, apps, appId, msg.caller, Core.TokenLedgerCanister, spenderPrincipal, merchant);
   };
 
   // get

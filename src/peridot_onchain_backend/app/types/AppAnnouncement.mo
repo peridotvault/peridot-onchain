@@ -4,7 +4,7 @@ import HashMap "mo:base/HashMap";
 module {
 
   public type AppAnnouncementHashMap = HashMap.HashMap<Core.DeveloperId, AppAnnouncement>;
-  public type AppAnnouncementInteractionHashMap = HashMap.HashMap<Core.UserId, AppAnnouncement>;
+  public type AppAnnouncementInteractionHashMap = HashMap.HashMap<Core.AnnouncementId, AppAnnouncementInteraction>;
 
   // =========================
   // App Announcement

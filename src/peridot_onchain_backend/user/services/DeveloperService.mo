@@ -4,6 +4,7 @@ import DeveloperTypes "../types/DeveloperTypes";
 import Core "../../core/Core";
 import Time "mo:base/Time";
 import Principal "mo:base/Principal";
+import Bool "mo:base/Bool";
 import TokenLedger "./../../shared/TokenLedger";
 // import Int "mo:base/Int";
 // import Array "mo:base/Array";
@@ -288,6 +289,24 @@ module {
   };
 
   // get
+  public func getAmIDeveloper(users : UserTypes.UsersHashMap, principal_id : Principal) : Bool {
+    switch (users.get(principal_id)) {
+      case (null) {
+        return false;
+      };
+      case (?user) {
+        switch (user.developer) {
+          case (null) {
+            return false;
+          };
+          case (_) {
+            return true;
+          };
+        };
+      };
+    };
+  };
+
   public func getDeveloperProfile(users : UserTypes.UsersHashMap, principal_id : Principal) : ApiResponse<DeveloperType> {
     switch (users.get(principal_id)) {
       case (null) {

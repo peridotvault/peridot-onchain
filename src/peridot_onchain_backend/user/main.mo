@@ -138,6 +138,10 @@ persistent actor PeridotUser {
   // };
 
   // get
+  public shared (msg) func getAmIDeveloper() : async Bool {
+    DeveloperService.getAmIDeveloper(users, msg.caller);
+  };
+
   public shared query func getDeveloperProfile(principalId : Principal) : async ApiResponse<DeveloperType> {
     DeveloperService.getDeveloperProfile(users, principalId);
   };

@@ -13,17 +13,21 @@ module AppTypesModule {
   public type CreateApp = {
     title : Text;
     description : Text;
-    bannerImage : Text;
-    coverImage : Text;
-    previews : [Preview];
-    price : Nat;
-    requiredAge : Nat;
-    releaseDate : Core.Timestamp;
+  };
+
+  public type UpdateApp = {
+    title : Text;
+    description : Text;
+    bannerImage : ?Text;
+    coverImage : ?Text;
+    previews : ?[Preview];
+    price : ?Nat;
+    requiredAge : ?Nat;
+    releaseDate : ?Core.Timestamp;
     status : Core.AppStatus;
-    createdAt : Core.Timestamp;
-    category : [Core.Category];
-    appTags : [Core.Tag];
-    distributions : [Distribution];
+    category : ?[Core.Category];
+    appTags : ?[Core.Tag];
+    distributions : ?[Distribution];
   };
 
   // =========================
@@ -31,20 +35,20 @@ module AppTypesModule {
   // =========================
   public type App = {
     appId : Core.AppId;
-    developerId : Core.UserId;
+    developerId : Core.DeveloperId;
     title : Text;
     description : Text;
-    bannerImage : Text;
-    coverImage : Text;
-    previews : [Preview];
-    price : Nat;
-    requiredAge : Nat;
-    releaseDate : Core.Timestamp;
+    bannerImage : ?Text;
+    coverImage : ?Text;
+    previews : ?[Preview];
+    price : ?Nat;
+    requiredAge : ?Nat;
+    releaseDate : ?Core.Timestamp;
     status : Core.AppStatus;
     createdAt : Core.Timestamp;
-    category : [Core.Category];
-    appTags : [Core.Tag];
-    distributions : [Distribution];
+    category : ?[Core.Category];
+    appTags : ?[Core.Tag];
+    distributions : ?[Distribution];
     appRatings : ?[AppRating];
   };
 
