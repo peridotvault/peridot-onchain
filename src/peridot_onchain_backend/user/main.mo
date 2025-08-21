@@ -24,37 +24,27 @@ persistent actor PeridotUser {
   private var priceUpgradeToDeveloperAccount : Nat = 1_000_000_000;
   private var userEntries : [(Core.UserId, UserType)] = [];
   private var friendEntries : [(Text, FriendType)] = [];
-  // private var announcementEntries : [(DeveloperTypes.AnnouncementId, DeveloperTypes.Announcement)] = [];
-  // private var interactionEntries : [(Text, DeveloperTypes.AnnouncementInteraction)] = [];
   private var followEntries : [(Text, DeveloperTypes.DeveloperFollow)] = [];
 
   // STATE ==========================================================
-  private transient var users : UserTypes.UsersHashMap = HashMap.HashMap(0, Principal.equal, Principal.hash);
-  private transient var friends : FriendTypes.FriendsHashMap = HashMap.HashMap(0, Text.equal, Text.hash);
-  private transient var follows : DeveloperTypes.FollowsHashMap = HashMap.HashMap(0, Text.equal, Text.hash);
-  // private transient var announcements : DeveloperTypes.AnnouncementsHashMap = HashMap.HashMap(0, Text.equal, Text.hash);
-  // private transient var interactions : DeveloperTypes.InteractionsHashMap = HashMap.HashMap(0, Text.equal, Text.hash);
+  private transient var users : UserTypes.UsersHashMap = HashMap.HashMap(8, Principal.equal, Principal.hash);
+  private transient var friends : FriendTypes.FriendsHashMap = HashMap.HashMap(8, Text.equal, Text.hash);
+  private transient var follows : DeveloperTypes.FollowsHashMap = HashMap.HashMap(8, Text.equal, Text.hash);
 
   // SYSTEM =========================================================
   system func preupgrade() {
     userEntries := Iter.toArray(users.entries());
     friendEntries := Iter.toArray(friends.entries());
-    // announcementEntries := Iter.toArray(announcements.entries());
-    // interactionEntries := Iter.toArray(interactions.entries());
     followEntries := Iter.toArray(follows.entries());
   };
 
   system func postupgrade() {
-    users := HashMap.fromIter<Principal, UserType>(userEntries.vals(), 1, Principal.equal, Principal.hash);
-    friends := HashMap.fromIter<Text, FriendType>(friendEntries.vals(), 1, Text.equal, Text.hash);
-    // announcements := HashMap.fromIter<DeveloperTypes.AnnouncementId, DeveloperTypes.Announcement>(announcementEntries.vals(), 1, Text.equal, Text.hash);
-    // interactions := HashMap.fromIter<Text, DeveloperTypes.AnnouncementInteraction>(interactionEntries.vals(), 1, Text.equal, Text.hash);
-    follows := HashMap.fromIter<Text, DeveloperTypes.DeveloperFollow>(followEntries.vals(), 1, Text.equal, Text.hash);
+    users := HashMap.fromIter<Principal, UserType>(userEntries.vals(), 8, Principal.equal, Principal.hash);
+    friends := HashMap.fromIter<Text, FriendType>(friendEntries.vals(), 8, Text.equal, Text.hash);
+    follows := HashMap.fromIter<Text, DeveloperTypes.DeveloperFollow>(followEntries.vals(), 8, Text.equal, Text.hash);
 
     userEntries := [];
     friendEntries := [];
-    // announcementEntries := [];
-    // interactionEntries := [];
     followEntries := [];
   };
 
