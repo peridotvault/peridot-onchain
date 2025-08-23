@@ -1,0 +1,102 @@
+{
+    "sections": [
+        {
+            "id": "desktop-app",
+            "title": "Desktop Application",
+            "description": "We have successfully developed the platform architecture and laid the groundwork for AI integration, setting the stage for a robust and innovative gaming experience.",
+            "items": [
+                {
+                    "title": "Initialization",
+                    "status": "completed",
+                    "date": "2024-08-03",
+                    "description": "Project bootstrap, repo setup, CI/CD, and base Electron shell.",
+                    "featuresCount": 3
+                },
+                {
+                    "title": "Initialization 2",
+                    "status": "completed",
+                    "date": "2024-08-03",
+                    "description": "Project bootstrap, repo setup, CI/CD, and base Electron shell.",
+                    "featuresCount": 3
+                },
+                {
+                    "title": "Core Wallet",
+                    "status": "in-progress",
+                    "date": "2024-09-10",
+                    "description": "ICRC-3 send/receive, balance, and transactions list.",
+                    "featuresCount": 5
+                },
+                {
+                    "title": "AI Integration",
+                    "status": "in-progress",
+                    "date": "2024-10-25",
+                    "description": "Model selection, inference sandbox, and guardrails.",
+                    "featuresCount": 4
+                }
+            ]
+        },
+        {
+            "id": "ai",
+            "title": "Artificial Intelligent",
+            "description": "We have successfully developed the platform architecture and laid the groundwork for AI integration, setting the stage for a robust and innovative gaming experience.",
+            "items": [
+                {
+                    "title": "Account & Auth",
+                    "status": "completed",
+                    "date": "2024-08-20",
+                    "description": "SSO and device linking across desktop & web.",
+                    "featuresCount": 2
+                },
+                {
+                    "title": "Marketplace MVP",
+                    "status": "in-progress",
+                    "date": "2024-09-30",
+                    "description": "Listing, purchase flow, and basic review system.",
+                    "featuresCount": 6
+                }
+            ]
+        },
+        {
+            "id": "wallet",
+            "title": "Wallet",
+            "description": "We have successfully developed the platform architecture and laid the groundwork for AI integration, setting the stage for a robust and innovative gaming experience.",
+            "items": [
+                {
+                    "title": "Account & Auth",
+                    "status": "completed",
+                    "date": "2024-08-20",
+                    "description": "SSO and device linking across desktop & web.",
+                    "featuresCount": 2
+                },
+                {
+                    "title": "Marketplace MVP",
+                    "status": "in-progress",
+                    "date": "2024-09-30",
+                    "description": "Listing, purchase flow, and basic review system.",
+                    "featuresCount": 6
+                }
+            ]
+        },
+        {
+            "id": "currency",
+            "title": "Currency",
+            "description": "We have successfully developed the platform architecture and laid the groundwork for AI integration, setting the stage for a robust and innovative gaming experience.",
+            "items": [
+                {
+                    "title": "Account & Auth",
+                    "status": "completed",
+                    "date": "2024-08-20",
+                    "description": "SSO and device linking across desktop & web.",
+                    "featuresCount": 2
+                },
+                {
+                    "title": "Marketplace MVP",
+                    "status": "in-progress",
+                    "date": "2024-09-30",
+                    "description": "Listing, purchase flow, and basic review system.",
+                    "featuresCount": 6
+                }
+            ]
+        }
+    ]
+}
