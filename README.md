@@ -9,6 +9,7 @@ For players, PeridotVault offers **personalized game recommendations**, **AI-dri
 - Category: Gaming, Web3, AI, Blockchain
 - Demo: [Live Demo](https://peridotvault.com)
 - Introduction Video: [YouTube Link](https://www.youtube.com/watch?v=k-u_IqpcvDc&t=6s)
+- Pitch Deck Video: [YouTube Link](https://www.youtube.com/watch?v=k-u_IqpcvDc&t=6s)
 
 ## 🌏 Ecosystem Overview
 

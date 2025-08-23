@@ -12,6 +12,7 @@ import Hash "mo:base/Hash";
 import Text "mo:base/Text";
 import Array "mo:base/Array";
 import Principal "mo:base/Principal";
+import Order "mo:base/Order";
 import PurchaseTypes "../types/PurchaseTypes";
 
 module AppServiceModule {
@@ -157,9 +158,36 @@ module AppServiceModule {
     return #ok(result);
   };
 
-  // User
   public func getAllApps(apps : AppTypes.AppHashMap) : ApiResponse<[AppType]> {
     #ok(Iter.toArray<AppType>(apps.vals()));
+  };
+
+  // User
+  public func getAllPublishApps(apps : AppTypes.AppHashMap) : ApiResponse<[AppType]> {
+    // 1) filter hanya yang status = #publish
+    let filtered = Iter.toArray<AppType>(
+      Iter.filter<AppType>(
+        apps.vals(),
+        func(app : AppType) : Bool {
+          switch (app.status) {
+            case (#publish) { true };
+            case _ { false };
+          };
+        },
+      )
+    );
+
+    // 2) sort by createdAt desc (terbaru dulu)
+    let sorted = Array.sort<AppType>(
+      filtered,
+      func(a : AppType, b : AppType) : Order.Order {
+        if (a.createdAt > b.createdAt) { #less } else if (a.createdAt < b.createdAt) {
+          #greater;
+        } else { #equal };
+      },
+    );
+
+    #ok(sorted);
   };
 
   public func getAppById(apps : AppTypes.AppHashMap, appId : Core.AppId) : ApiResponse<AppType> {

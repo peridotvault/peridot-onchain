@@ -1,6 +1,7 @@
 import React from 'react'
 import { faGamepad } from '@fortawesome/free-solid-svg-icons'
 import { FeatureHeader } from '../../components/atoms/FeatureHeader'
+import { ContainerGlass } from '../../components/molecules/ContainerGlass'
 
 export const SectionGameVault = () => {
     const list = [
@@ -24,11 +25,7 @@ export const SectionGameVault = () => {
             {/* contents  */}
             <div className="grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-8">
                 {list.map((item, idx) => (
-                    <div className="aspect-square border rounded-2xl flex flex-col gap-8 py-8 bg-white/5 backdrop-blur-md border-white/10 hover:bg-accent_secondary duration-300" key={idx}>
-                        <h2 className='text-xl px-8'>{item.title}</h2>
-                        <hr className='border-t border-white/10 ' />
-                        <p className='px-8 text-3xl'>{item.description}</p>
-                    </div>
+                    <ContainerGlass key={idx} title={item.title} description={item.description} />
                 ))}
             </div>
         </section>

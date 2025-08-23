@@ -23,7 +23,7 @@ export const Section1 = () => {
                         <div className="mb-5">
                             <label className='shadow-xl shadow-accent_primary/30 py-2 px-4 rounded-lg ring-1 ring-accent_primary/30 text-base'>Peridot is now in Alpha version</label>
                         </div>
-                        <h1 className='text-6xl font-bold'>Next-Gen Gaming, Powered by AI</h1>
+                        <h1 className='text-6xl font-bold'>Intelligent Decentralized Gaming</h1>
                         <p className='text-xl max-w-[50rem]'>Your next gaming era starts here personalized by AI and powered by blockchain. PeridotVault gives you control, simplicity, and freedom.</p>
                         <div className="flex justify-center items-center gap-6">
                             {isMac ? (

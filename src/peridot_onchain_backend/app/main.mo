@@ -86,6 +86,10 @@ persistent actor PeridotApp {
     AppService.getAllApps(apps);
   };
 
+  public query func getAllPublishApps() : async ApiResponse<[AppType]> {
+    AppService.getAllPublishApps(apps);
+  };
+
   public query func getAppById(appId : Core.AppId) : async ApiResponse<AppType> {
     AppService.getAppById(apps, appId);
   };

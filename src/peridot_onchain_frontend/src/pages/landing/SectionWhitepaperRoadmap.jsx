@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 export const SectionWhitepaperRoadmap = () => {
     const ComponentSection = ({ id, title, description, hookText, href }) => {
         return (
-            <section id={id} className='w-full bg-background_primary border border-background_disabled aspect-[3/4] rounded-2xl overflow-hidden'>
+            <section id={id} className='w-full bg-background_primary border border-background_disabled aspect-[3/4] max-md:aspect-[4/3] duration-300 rounded-2xl overflow-hidden'>
                 <div className="p-24 flex flex-col gap-8 text-xl">
                     <h2 className='text-4xl font-bold'>{title}</h2>
                     <p>{description}</p>

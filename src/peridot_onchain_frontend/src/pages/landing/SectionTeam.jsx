@@ -30,7 +30,7 @@ export const SectionTeam = () => {
       {/* content  */}
       <div className="flex max-md:flex-col justify-center items-center gap-10">
         {teamLists.map((item, idx) => (
-          <div className="aspect-[3/5] max-lg:aspect-[2/5] max-md:aspect-[4/5] duration-300 w-full h-full">
+          <div className="aspect-[3/5] max-lg:aspect-[2/5] max-md:aspect-square  duration-300 w-full h-full">
             <TiltedCard
               key={idx}
               imageSrc={item.image}
