@@ -16,21 +16,21 @@ export const SectionNativeWallet = () => {
         },
     ]
     return (
-        <section className='max-w-[1200px] px-8 py-24 w-full '>
+        <section className='max-w-[1200px] px-8 max-md:px-4 py-24 max-md:py-10 w-full '>
 
-            <div className="flex flex-col gap-12 p-16 max-md:p-10 border border-background_disabled rounded-2xl duration-300">
+            <div className="flex flex-col gap-12 max-md:gap-8 p-16 max-md:p-8 border border-background_disabled rounded-2xl duration-300">
                 <FeatureHeader icon={faWallet} title={"Native Wallet"} description={"Meet the wallet that feels invisible—always there, always secure. Complete control of your digital assets, without the complexity."} />
 
                 {/* contents  */}
                 <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-8 bh">
                     {list.map((item, idx) => (
-                        <div className="aspect-[4/3] border hover:-translate-y-4 duration-300 bg-white/5 backdrop-blur-lg border-white/10 rounded-3xl overflow-hidden" key={idx}>
-                            <div className="bg-red-300 w-full aspect-[5/2]">
-                                <img src={item.image} className='w-full h-full object-cover ' alt="" />
+                        <div className="aspect-[4/3] border hover:-translate-y-4 duration-300 bg-white/5 backdrop-blur-lg border-white/10 rounded-2xl overflow-hidden" key={idx}>
+                            <div className="w-full aspect-[5/2]">
+                                <img src={item.image} className='w-full h-full object-cover ' alt={item.title} draggable={false} />
                             </div>
-                            <div className="h-full flex flex-col gap-2 p-8">
-                                <h2 className='text-2xl'>{item.title}</h2>
-                                <p className='text-text_disabled'>{item.description}</p>
+                            <div className="h-full flex flex-col gap-2 p-8 max-md:p-6">
+                                <h2 className='text-2xl max-md:text-xl'>{item.title}</h2>
+                                <p className='text-text_disabled max-md:text-base'>{item.description}</p>
                             </div>
                         </div>
                     ))}

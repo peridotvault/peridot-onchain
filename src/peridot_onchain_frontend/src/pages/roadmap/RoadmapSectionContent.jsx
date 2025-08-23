@@ -14,7 +14,7 @@ const formatDate = (iso) =>
 export const RoadmapSectionContent = () => {
     const data = roadmapData;
     return (
-        <div className='w-full flex justify-center px-8 py-24 gap-10'>
+        <div className='w-full flex justify-center py-24 max-md:py-10 gap-10 max-md:gap-8'>
             <div className="w-full flex flex-col gap-24">
                 {data.sections.map((section, idx) => (
                     <Content key={idx} section={section} />
@@ -37,12 +37,12 @@ const Content = ({ section }) => {
     };
 
     return (
-        <section className='w-full flex flex-col gap-14 items-center'>
+        <section className='w-full flex flex-col gap-14 max-md:gap-8 items-center'>
             {/* Judul & deskripsi */}
             <div className="max-w-[1200px] w-full">
-                <div className="flex flex-col gap-8 px-8">
-                    <h2 className='text-4xl font-bold'>{section.title}</h2>
-                    <p className='w-2/3 max-w-[800px] text-xl'>
+                <div className="flex flex-col gap-8 px-8 max-md:gap-4">
+                    <h2 className='text-4xl font-bold max-md:text-3xl'>{section.title}</h2>
+                    <p className='w-2/3 max-w-[800px] text-xl max-md:text-base max-md:w-full'>
                         {section.description}
                     </p>
                 </div>
@@ -64,17 +64,17 @@ const Content = ({ section }) => {
                     className="w-full overflow-x-auto scrollbar-hide scroll-smooth"
                 >
                     <div className="max-w-[1200px] mx-auto px-8">
-                        <div className="flex gap-8 w-max">
+                        <div className="flex gap-8 max-md:gap-6 w-max">
                             {section.items.map((item, idx) => (
                                 <SpotlightCard
                                     key={idx}
-                                    className={`flex-shrink-0 custom-spotlight-card p-8 rounded-xl aspect-video w-[450px] flex flex-col justify-between ${item.status === "completed" ? "bg-accent_secondary/10" : ""}`}
+                                    className={`flex-shrink-0 custom-spotlight-card p-8 max-md:p-6 rounded-xl aspect-video w-[450px] max-md:w-[300px] flex flex-col justify-between ${item.status === "completed" ? "bg-accent_secondary/10" : ""}`}
                                 >
                                     <div className="flex justify-between relative">
                                         <div className="flex flex-col gap-2">
-                                            <h3 className='text-2xl font-bold'>{item.title}</h3>
+                                            <h3 className='text-2xl font-bold max-md:text-xl'>{item.title}</h3>
                                             {item.status === "completed" && (
-                                                <p>
+                                                <p className='max-md:text-sm'>
                                                     <span className={"text-success capitalize"}>
                                                         {item.status}
                                                     </span>{" "}
@@ -82,17 +82,17 @@ const Content = ({ section }) => {
                                                 </p>
                                             )}
                                         </div>
-                                        <div className={`w-[50px] absolute right-0 top-0 rounded-full aspect-square flex items-center justify-center text-3xl text-background_primary ${item.status === "completed" ? "border border-success bg-accent_secondary" : "bg-warning"}`}>
+                                        <div className={`w-[50px] max-md:w-[40px] duration-300 absolute right-0 top-0 rounded-full aspect-square flex items-center justify-center text-3xl max-md:text-xl text-background_primary ${item.status === "completed" ? "border border-success bg-accent_secondary" : "bg-warning"}`}>
                                             <FontAwesomeIcon icon={item.status === "completed" ? faCheck : faCircleNotch} />
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-end">
-                                        <p className='text-lg w-2/3'>
+                                        <p className='text-lg w-2/3 max-md:text-sm'>
                                             {item.description}
                                         </p>
                                         <div className="flex flex-col items-end">
-                                            <span className='text-8xl'>{item.featuresCount}</span>
-                                            <span>Features</span>
+                                            <span className='text-8xl max-md:text-5xl'>{item.featuresCount}</span>
+                                            <span className='max-md:text-sm'>Features</span>
                                         </div>
                                     </div>
                                 </SpotlightCard>

@@ -37,8 +37,9 @@ export const Navbar = () => {
                     {/* actions  */}
                     <div className="flex gap-8 items-center max-md:hidden">
                         <a href="/#about">About</a>
-                        <a href="/#roadmap">Roadmap</a>
+                        <a href="/roadmap">Roadmap</a>
                         <a href="/#team">Team</a>
+                        <a href="/ai">AI</a>
                         <a href="/#" >
                             <StarBorder
                                 as="button"

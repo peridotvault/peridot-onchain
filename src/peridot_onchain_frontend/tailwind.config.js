@@ -10,6 +10,8 @@ export default {
         "accent_primary": "#90EE90",
         "accent_secondary": "#4D8A6A",
 
+        "accent_primary/40": "rgba(144, 238, 144, .4)",
+
         "background_primary": "var(--background_primary)",
         "background_secondary": "var(--background_secondary)",
 

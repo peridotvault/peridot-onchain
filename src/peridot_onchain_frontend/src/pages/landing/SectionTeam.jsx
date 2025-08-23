@@ -22,13 +22,13 @@ export const SectionTeam = () => {
   ]
 
   return (
-    <section id='team' className='max-w-[1200px] w-full flex flex-col justify-center px-8 gap-20 py-24'>
-      <div className="flex flex-col items-center gap-5">
-        <h2 className='text-5xl font-bold '>Meet Our <span className='text-accent_primary'>Team</span></h2>
-        <p className='text-xl w-[50rem] text-center'>Passionate Innovators Driving PeridotVault Forward</p>
+    <section id='team' className='max-w-[1200px] w-full flex flex-col justify-center px-8 gap-20 max-md:gap-12 py-24 max-md:py-10'>
+      <div className="flex flex-col items-center gap-6 max-md:gap-4">
+        <h2 className='text-5xl font-bold max-md:text-3xl'>Meet Our <span className='text-accent_primary'>Team</span></h2>
+        <p className='text-xl w-[50rem] text-center max-md:text-base'>Passionate Innovators Driving PeridotVault Forward</p>
       </div>
       {/* content  */}
-      <div className="flex max-md:flex-col justify-center items-center gap-10">
+      <div className="flex max-md:flex-col justify-center items-center gap-10 max-md:gap-6">
         {teamLists.map((item, idx) => (
           <div className="aspect-[3/5] max-lg:aspect-[2/5] max-md:aspect-square  duration-300 w-full h-full">
             <TiltedCard

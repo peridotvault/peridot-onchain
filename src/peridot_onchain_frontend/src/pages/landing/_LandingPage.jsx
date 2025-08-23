@@ -9,6 +9,7 @@ import { SectionWhitepaperRoadmap } from './SectionWhitepaperRoadmap';
 import { SectionNativeWallet } from './SectionNativeWallet';
 import ParticlesComponent from '../../components/particles/particles';
 import { SectionAI } from './SectionAI';
+import { SectionUI } from './SectionUI';
 
 export const LandingPage = () => {
     useEffect(() => {
@@ -24,6 +25,7 @@ export const LandingPage = () => {
             <Section1 />
             <Section2 />
             <Section3 />
+            <SectionUI />
             <SectionAI />
             <SectionGameVault />
             <SectionNativeWallet />

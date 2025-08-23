@@ -19,11 +19,11 @@ export const SectionGameVault = () => {
         }
     ]
     return (
-        <section className='max-w-[1200px] px-8 py-24 w-full flex flex-col gap-12'>
+        <section className='max-w-[1200px] px-8 py-24 max-md:py-10 w-full flex flex-col gap-12 max-md:gap-8'>
             <FeatureHeader icon={faGamepad} title={"GameVault"} description={"Experience a new era of gaming with GameVault where buying games is simple, fast, and transparent. Own your collection forever with blockchain-backed security."} />
 
             {/* contents  */}
-            <div className="grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-8">
+            <div className="grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-8 max-md:gap-6">
                 {list.map((item, idx) => (
                     <ContainerGlass key={idx} title={item.title} description={item.description} />
                 ))}
