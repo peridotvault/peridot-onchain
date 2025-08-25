@@ -12,7 +12,7 @@ export const SectionNativeWallet = () => {
         {
             title: "Secure & Self-Custodial",
             description: "Your assets are yours—no banks, no middlemen, just pure control.",
-            image: "https://plus.unsplash.com/premium_vector-1711987827897-00999d8387af?q=80&w=1242&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            image: "./assets/views/landing/secure.webp",
         },
     ]
     return (
@@ -24,9 +24,9 @@ export const SectionNativeWallet = () => {
                 {/* contents  */}
                 <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-8 bh">
                     {list.map((item, idx) => (
-                        <div className="aspect-[4/3] border hover:-translate-y-4 duration-300 bg-white/5 backdrop-blur-lg border-white/10 rounded-2xl overflow-hidden" key={idx}>
-                            <div className="w-full aspect-[5/2]">
-                                <img src={item.image} className='w-full h-full object-cover ' alt={item.title} draggable={false} />
+                        <div className="aspect-[4/3] max-lg:aspect-video max-md:aspect-[4/3] border hover:-translate-y-4 duration-300 bg-white/5 backdrop-blur-lg border-white/10 rounded-2xl overflow-hidden" key={idx}>
+                            <div className="w-full aspect-[5/2] bg-background_primary">
+                                <img src={item.image} className='w-full h-full object-cover opacity-80' alt={item.title} draggable={false} />
                             </div>
                             <div className="h-full flex flex-col gap-2 p-8 max-md:p-6">
                                 <h2 className='text-2xl max-md:text-xl'>{item.title}</h2>

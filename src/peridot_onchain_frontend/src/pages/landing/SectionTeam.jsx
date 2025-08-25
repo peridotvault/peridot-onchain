@@ -5,17 +5,17 @@ export const SectionTeam = () => {
 
   const teamLists = [
     {
-      image: "./assets/the-founder.png",
+      image: "./assets/teams/the-founder.webp",
       name: "Ranaufal Muha",
       title: "Founder, CEO",
     },
     {
-      image: "./assets/the-cofounder.jpeg",
+      image: "./assets/teams/the-cofounder.webp",
       name: "Michael Eko Hartono Gunawan",
       title: "Co-Founder, CTO",
     },
     {
-      image: "./assets/the-designer.png",
+      image: "./assets/teams/the-designer.webp",
       name: "Michael Chandra",
       title: "UI Designer",
     }
