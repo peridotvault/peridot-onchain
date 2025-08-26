@@ -62,12 +62,16 @@ persistent actor PeridotUser {
   };
 
   // get
-  public shared (msg) func getUserByPrincipalId() : async ApiResponse<UserType> {
-    UserService.getUserByPrincipalId(users, msg.caller);
+  public query func getUserByPrincipalId(userId : Core.UserId) : async ApiResponse<UserType> {
+    UserService.getUserByPrincipalId(users, userId);
   };
 
   public query func getUserByUsername(username : Text) : async ApiResponse<UserType> {
     UserService.getUserByUsername(users, username);
+  };
+
+  public shared (msg) func getUserData() : async ApiResponse<UserType> {
+    UserService.getUserByPrincipalId(users, msg.caller);
   };
 
   public query func getUsersByPrefixWithLimit(prefix : Text, limit : Nat) : async ApiResponse<[UserType]> {
