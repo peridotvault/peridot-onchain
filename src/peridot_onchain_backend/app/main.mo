@@ -140,6 +140,10 @@ persistent actor PeridotApp {
     AppAnnouncementService.getAllAnnouncementsByAppId(announcements, appId);
   };
 
+  public query func getAnnouncementsByAnnouncementId(announcementId : Core.AnnouncementId) : async ApiResponse<AppAnnouncementType> {
+    AppAnnouncementService.getAnnouncementsByAnnouncementId(announcements, announcementId);
+  };
+
   // UPDATE
   public shared (msg) func updateAnnouncement(announcementId : Core.AnnouncementId, annInput : AppAnnouncementTypes.DTOAppAnnouncement) : async ApiResponse<AppAnnouncementType> {
     AppAnnouncementService.updateAnnouncement(announcements, msg.caller, annInput, announcementId);

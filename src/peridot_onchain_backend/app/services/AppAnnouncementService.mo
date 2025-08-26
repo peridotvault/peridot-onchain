@@ -86,6 +86,21 @@ module AppAnnouncementServiceModule {
     #ok(sorted);
   };
 
+  public func getAnnouncementsByAnnouncementId(
+    announcements : AppAnnouncementTypes.AppAnnouncementHashMap,
+    announcementId : Core.AnnouncementId,
+  ) : ApiResponse<AppAnnouncementType> {
+    let existingOpt = announcements.get(announcementId);
+    switch (existingOpt) {
+      case (null) {
+        return #err(#NotFound("Announcement with ID " # Nat.toText(announcementId) # " not found"));
+      };
+      case (?announcement) {
+        return #ok(announcement);
+      };
+    };
+  };
+
   public func updateAnnouncement(
     announcements : AppAnnouncementTypes.AppAnnouncementHashMap,
     developerId : Core.DeveloperId,
