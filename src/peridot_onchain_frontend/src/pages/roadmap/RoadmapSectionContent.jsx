@@ -72,7 +72,7 @@ const Content = ({ section }) => {
                                 >
                                     <div className="flex justify-between relative">
                                         <div className="flex flex-col gap-2">
-                                            <h3 className='text-2xl font-bold max-md:text-xl'>{item.title}</h3>
+                                            <h3 className='text-2xl font-bold max-md:text-xl line-clamp-2'>{item.title}</h3>
                                             {item.status === "completed" && (
                                                 <p className='max-md:text-sm'>
                                                     <span className={"text-success capitalize"}>
@@ -82,16 +82,18 @@ const Content = ({ section }) => {
                                                 </p>
                                             )}
                                         </div>
-                                        <div className={`w-[50px] max-md:w-[40px] duration-300 absolute right-0 top-0 rounded-full aspect-square flex items-center justify-center text-3xl max-md:text-xl text-background_primary ${item.status === "completed" ? "border border-success bg-accent_secondary" : "bg-warning"}`}>
-                                            <FontAwesomeIcon icon={item.status === "completed" ? faCheck : faCircleNotch} />
+                                        <div >
+                                            <div className={`w-[50px] max-md:w-[40px] duration-300 rounded-full aspect-square flex items-center justify-center text-3xl max-md:text-xl text-background_primary ${item.status === "completed" ? "border border-success bg-accent_secondary" : "bg-warning"}`}>
+                                                <FontAwesomeIcon icon={item.status === "completed" ? faCheck : faCircleNotch} />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex justify-between items-end">
-                                        <p className='text-lg w-2/3 max-md:text-sm'>
+                                    <div className="flex justify-between items-end gap-12">
+                                        <p className='text-lg max-md:text-sm line-clamp-3'>
                                             {item.description}
                                         </p>
                                         <div className="flex flex-col items-end">
-                                            <span className='text-8xl max-md:text-5xl'>{item.featuresCount}</span>
+                                            <span className='text-8xl max-md:text-5xl '>{item.featuresCount}</span>
                                             <span className='max-md:text-sm'>Features</span>
                                         </div>
                                     </div>

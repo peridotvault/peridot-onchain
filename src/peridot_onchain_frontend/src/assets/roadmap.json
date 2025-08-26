@@ -2,56 +2,98 @@
     "sections": [
         {
             "id": "desktop-app",
-            "title": "Desktop Application",
-            "description": "We have successfully developed the platform architecture and laid the groundwork for AI integration, setting the stage for a robust and innovative gaming experience.",
+            "title": "Desktop App",
+            "description": "From web-first prototype to full gaming platform",
             "items": [
                 {
-                    "title": "Initialization",
+                    "title": "Prototype (Web-First)",
                     "status": "completed",
-                    "date": "2024-08-03",
-                    "description": "Project bootstrap, repo setup, CI/CD, and base Electron shell.",
-                    "featuresCount": 3
+                    "date": "2025-08-19",
+                    "description": "Users can install PeridotVault desktop and play directly through a secure web window. The app already supports buying games with PER and viewing them in the personal library. Developers can also create accounts and publish their first web-based games.",
+                    "featuresCount": 6
                 },
                 {
-                    "title": "Initialization 2",
-                    "status": "completed",
-                    "date": "2024-08-03",
-                    "description": "Project bootstrap, repo setup, CI/CD, and base Electron shell.",
-                    "featuresCount": 3
-                },
-                {
-                    "title": "Core Wallet",
+                    "title": "Alpha",
                     "status": "in-progress",
-                    "date": "2024-09-10",
-                    "description": "ICRC-3 send/receive, balance, and transactions list.",
+                    "date": "",
+                    "description": "The first native build of the launcher is introduced with download and install features. The platform expands to support multi-game libraries and basic wallet transactions. This phase ensures a stable app core for internal developer and tester use.",
+                    "featuresCount": 6
+                },
+                {
+                    "title": "Closed Beta",
+                    "status": "planned",
+                    "date": "",
+                    "description": "Closed Beta opens for early players with web and native play options. Features like cloud saves, early payments, and developer publishing are tested in a controlled environment. The goal is to make the platform usable for core gameplay and feedback.",
+                    "featuresCount": 7
+                },
+                {
+                    "title": "Open Beta",
+                    "status": "planned",
+                    "date": "",
+                    "description": "Open Beta brings social features such as friends and chat, along with a discovery feed and marketplace v1. The launcher begins to feel alive with player activity and community-driven content. Broader access helps stress-test the system at scale.",
+                    "featuresCount": 8
+                },
+                {
+                    "title": "RC",
+                    "status": "planned",
+                    "date": "",
+                    "description": "The Release Candidate focuses on polish, stability, and scaling. Code signing, CDN optimizations, and SDK tools for developers are introduced. This version should be close to launch quality and ready for final validation.",
+                    "featuresCount": 6
+                },
+                {
+                    "title": "Launch v1.0",
+                    "status": "planned",
+                    "date": "",
+                    "description": "The public release of PeridotVault marks the full launch of the desktop and gaming platform. Players can buy, play, and manage games securely with integrated payments and support. Compliance and marketing features prepare the platform for global reach.",
                     "featuresCount": 5
                 },
                 {
-                    "title": "AI Integration",
-                    "status": "in-progress",
-                    "date": "2024-10-25",
-                    "description": "Model selection, inference sandbox, and guardrails.",
-                    "featuresCount": 4
+                    "title": "Post-Launch 1.1–1.3",
+                    "status": "planned",
+                    "date": "",
+                    "description": "Post-launch updates introduce AI companion v2, events, and expanded marketplace options. Multiplayer features, tournaments, and early multichain prep are rolled out. These updates focus on growth, monetization, and long-term engagement.",
+                    "featuresCount": 6
                 }
             ]
         },
         {
             "id": "ai",
-            "title": "Artificial Intelligent",
-            "description": "We have successfully developed the platform architecture and laid the groundwork for AI integration, setting the stage for a robust and innovative gaming experience.",
+            "title": "Artificial Intelligence",
+            "description": "Our AI strategy focuses on creating a deeply personalized and safe gaming environment, evolving from foundational moderation tools to an intelligent, in-game companion that enhances player skill and engagement.",
             "items": [
                 {
-                    "title": "Account & Auth",
+                    "title": "Profanity Filtering Engine (Off-Chain)",
                     "status": "completed",
-                    "date": "2024-08-20",
-                    "description": "SSO and device linking across desktop & web.",
-                    "featuresCount": 2
+                    "date": "2025-07-31",
+                    "description": "Successfully deployed an off-chain engine to detect harmful language and monitor community sentiment, ensuring a safer user environment.",
+                    "featuresCount": 3
                 },
                 {
-                    "title": "Marketplace MVP",
+                    "title": "Personalized Gaming Pal (MVP)",
                     "status": "in-progress",
-                    "date": "2024-09-30",
-                    "description": "Listing, purchase flow, and basic review system.",
+                    "date": "",
+                    "description": "Developing the core functionality for the AI pal to learn gaming preferences and provide initial strategy tips and recommendations.",
+                    "featuresCount": 5
+                },
+                {
+                    "title": "Personalized Recommendation Engine",
+                    "status": "in-progress",
+                    "date": "",
+                    "description": "Refining the core engine that transforms raw user data into intelligent predictions, with continuous improvement from user interactions.",
+                    "featuresCount": 4
+                },
+                {
+                    "title": "On-Chain Profanity Engine (ICP)",
+                    "status": "planned",
+                    "date": "",
+                    "description": "Deploy the filtering model on-chain to the ICP network. This will guarantee model integrity, enhance data confidentiality, and ensure high availability.",
+                    "featuresCount": 4
+                },
+                {
+                    "title": "Advanced AI Coaching",
+                    "status": "planned",
+                    "date": "",
+                    "description": "Expand the Gaming Pal's capabilities to include real-time strategic analysis, advanced skill development insights, and opponent pattern recognition.",
                     "featuresCount": 6
                 }
             ]
@@ -59,42 +101,84 @@
         {
             "id": "wallet",
             "title": "Wallet",
-            "description": "We have successfully developed the platform architecture and laid the groundwork for AI integration, setting the stage for a robust and innovative gaming experience.",
+            "description": "Core token wallet evolving into the gateway for the entire ecosystem",
             "items": [
                 {
-                    "title": "Account & Auth",
+                    "title": "Core Features",
                     "status": "completed",
-                    "date": "2024-08-20",
-                    "description": "SSO and device linking across desktop & web.",
+                    "date": "2025-05-23",
+                    "description": "Implements fundamental wallet operations for PER and ICP tokens. Users can send, receive, manage tokens, and view complete transaction history through ICRC-3 block logs. This stage establishes the self-custody foundation of the Peridot Wallet.",
+                    "featuresCount": 4
+                },
+                {
+                    "title": "Vault Integration",
+                    "status": "completed",
+                    "date": "2025-8-20",
+                    "description": "Enables seamless connection between the wallet and PeridotVault ecosystem. Users can approve and sign transactions to buy games, access content, and perform actions across the launcher. This transforms the wallet into the primary gateway for gameplay and purchases.",
                     "featuresCount": 2
                 },
                 {
-                    "title": "Marketplace MVP",
+                    "title": "Advanced Features",
                     "status": "in-progress",
-                    "date": "2024-09-30",
-                    "description": "Listing, purchase flow, and basic review system.",
-                    "featuresCount": 6
+                    "date": "",
+                    "description": "Expands wallet capabilities with NFT viewing, staking, and enhanced security features such as 2FA and encrypted key backups. Prepares the wallet for multichain expansion and marketplace integration, making it a complete hub for digital assets.",
+                    "featuresCount": 3
                 }
             ]
         },
         {
             "id": "currency",
-            "title": "Currency",
-            "description": "We have successfully developed the platform architecture and laid the groundwork for AI integration, setting the stage for a robust and innovative gaming experience.",
+            "title": "Currency (PER)",
+            "description": "Roadmap for PER Token as the core currency of the PeridotVault ecosystem, covering deployment, fee routing, buyback & burn, staking, treasury, and DEX integration.",
             "items": [
                 {
-                    "title": "Account & Auth",
+                    "title": "Testing Token Launch",
                     "status": "completed",
-                    "date": "2024-08-20",
-                    "description": "SSO and device linking across desktop & web.",
+                    "date": "2025-08-16",
+                    "description": "PER deployed on Internet Computer with ICRC-1 standard functions: mint, transfer, balance, metadata.",
                     "featuresCount": 2
                 },
                 {
-                    "title": "Marketplace MVP",
+                    "title": "Token Launch",
                     "status": "in-progress",
-                    "date": "2024-09-30",
-                    "description": "Listing, purchase flow, and basic review system.",
+                    "date": "",
+                    "description": "PER deployed on Internet Computer with ICRC-1 standard functions: mint, transfer, balance, metadata.",
+                    "featuresCount": 2
+                },
+                {
+                    "title": "Fee Routing",
+                    "status": "in-progress",
+                    "date": "",
+                    "description": "Implement transaction fee logic, routed to Treasury Contract for buyback, burn, and staking rewards.",
                     "featuresCount": 6
+                },
+                {
+                    "title": "Buyback & Burn",
+                    "status": "in-progress",
+                    "date": "",
+                    "description": "Automated buyback of PER using platform revenue, followed by token burning to reduce supply.",
+                    "featuresCount": 4
+                },
+                {
+                    "title": "Staking",
+                    "status": "planned",
+                    "date": "",
+                    "description": "Enable staking of PER and distribute rewards funded from platform revenue allocation.",
+                    "featuresCount": 3
+                },
+                {
+                    "title": "Treasury & Gov",
+                    "status": "planned",
+                    "date": "",
+                    "description": "Deploy Treasury Contract with governance voting to manage community funds and allocations.",
+                    "featuresCount": 3
+                },
+                {
+                    "title": "DEX Listing",
+                    "status": "planned",
+                    "date": "",
+                    "description": "Integrate PER with liquidity pools on ICP Swap, SNS Swap, and Peridot Swap for broader trading.",
+                    "featuresCount": 4
                 }
             ]
         }

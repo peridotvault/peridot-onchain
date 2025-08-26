@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import AnimatedContent from '../../components/animations/AnimatedContent'
 
 export const SectionWhitepaperRoadmap = () => {
     const ComponentSection = ({ id, title, description, hookText, href, imgUrl }) => {
@@ -25,11 +26,13 @@ export const SectionWhitepaperRoadmap = () => {
     return (
 
 
-        <div className='w-full flex justify-center py-24 max-md:py-10'>
-            <div className="max-w-[1200px] w-full grid grid-cols-2 max-md:grid-cols-1 gap-8 px-8 max-md:px-4">
-                <ComponentSection id={"whitepaper"} title="Whitepaper" description={"Explore the vision, technology, and economics behind PeridotVault. Our whitepaper details how we’re building the future of gaming—secure, decentralized, and player-first."} hookText="Read Now" href={"#"} imgUrl={"./assets/views/landing/whitepaper.webp"} />
-                <ComponentSection id={"roadmap"} title="Roadmap" description="From concept to reality, our roadmap reflects our commitment to innovation and transparency. Track every stage as PeridotVault evolves." hookText="Get into it" href={"/roadmap"} imgUrl={"./assets/views/landing/roadmap.gif"} />
+        <AnimatedContent>
+            <div className='w-full flex justify-center py-24 max-md:py-10'>
+                <div className="max-w-[1200px] w-full grid grid-cols-2 max-md:grid-cols-1 gap-8 px-8 max-md:px-4">
+                    <ComponentSection id={"whitepaper"} title="Whitepaper" description={"Explore the vision, technology, and economics behind PeridotVault. Our whitepaper details how we’re building the future of gaming—secure, decentralized, and player-first."} hookText="Read Now" href={"#"} imgUrl={"./assets/views/landing/whitepaper.webp"} />
+                    <ComponentSection id={"roadmap"} title="Roadmap" description="From concept to reality, our roadmap reflects our commitment to innovation and transparency. Track every stage as PeridotVault evolves." hookText="Get into it" href={"/roadmap"} imgUrl={"./assets/views/landing/roadmap.gif"} />
+                </div>
             </div>
-        </div>
+        </AnimatedContent>
     )
 }

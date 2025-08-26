@@ -10,6 +10,7 @@ import { SectionNativeWallet } from './SectionNativeWallet';
 import ParticlesComponent from '../../components/particles/particles';
 import { SectionAI } from './SectionAI';
 import { SectionUI } from './SectionUI';
+import AnimatedContent from '../../components/animations/AnimatedContent';
 
 export const LandingPage = () => {
     useEffect(() => {
@@ -32,7 +33,6 @@ export const LandingPage = () => {
             <SectionWhitepaperRoadmap />
             <SectionTeam />
             <GetUpdate />
-
         </div>
     )
 }

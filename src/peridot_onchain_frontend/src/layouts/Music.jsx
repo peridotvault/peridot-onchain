@@ -3,24 +3,24 @@ import GlassComponent from '../components/atoms/GlassComponent';
 import ElasticSlider from '../components/atoms/ElasticSlider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faPlay, faPause, faStop,
+    faPlay, faPause,
     faForwardStep, faBackwardStep,
-    faVolumeOff, faVolumeHigh, faRepeat
+    faVolumeOff, faVolumeHigh,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const Music = () => {
     // 1) Playlist: tinggal tambah/kurangi di sini
     const PLAYLIST = [
-        { title: 'Vault Theme', src: '/assets/music/vault.mp3' },
-        { title: 'Arena', src: '/assets/music/arena.mp3' },
-        { title: 'Nebula', src: '/assets/music/nebula.mp3' },
+        { title: 'Vault Theme', author: "PeridotVault", src: '/assets/music/vault.mp3', imgUrl: "./logo/logo-bg.png" },
+        { title: 'Arena', author: "PeridotVault", src: '/assets/music/arena.mp3', imgUrl: "./logo/logo-bg.png" },
+        { title: 'Nebula', author: "PeridotVault", src: '/assets/music/nebula.mp3', imgUrl: "./logo/logo-bg.png" },
     ];
 
     // 2) States
     const [index, setIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [playInLoop, setPlayInLoop] = useState(false);
     const [volume, setVolume] = useState(0.7); // 0.0 - 1.0
+    const [volOpen, setVolOpen] = useState(false);
 
     // 3) Single audio element (persist)
     const audioRef = useRef(null);
@@ -29,7 +29,6 @@ export const Music = () => {
     useEffect(() => {
         const audio = new Audio(PLAYLIST[0].src);
         audio.volume = volume;
-        audio.loop = playInLoop;
 
         // auto next saat lagu selesai
         const handleEnded = () => {
@@ -64,11 +63,6 @@ export const Music = () => {
         if (audioRef.current) audioRef.current.volume = volume;
     }, [volume]);
 
-    // Sync loop
-    useEffect(() => {
-        if (audioRef.current) audioRef.current.loop = playInLoop;
-    }, [playInLoop]);
-
     // 4) Controls
     const playSound = () => {
         if (!audioRef.current) return;
@@ -81,63 +75,78 @@ export const Music = () => {
         setIsPlaying(false);
     };
 
-    const stopSound = () => {
-        if (!audioRef.current) return;
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        setIsPlaying(false);
-    };
-
     const nextSong = () => setIndex((i) => (i + 1) % PLAYLIST.length);
     const prevSong = () => setIndex((i) => (i - 1 + PLAYLIST.length) % PLAYLIST.length);
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 md:left-4 md:right-auto">
-            <GlassComponent className="px-6 py-4 flex flex-col rounded-xl">
+        <div className="fixed bottom-4 left-4 group z-50 max-md:hidden">
+            <GlassComponent className="pl-4 pr-8 py-2 flex flex-col rounded-full">
                 <div className="flex justify-between items-center gap-6">
-                    <div className="flex items-center justify-between">
-                        <div className="font-bold text-xl uppercase">
-                            {PLAYLIST[index].title}
+                    {/* music detail  */}
+                    <div className="flex items-center gap-8 border border-white/10 bg-black/20 p-2 pr-6 rounded-full duration-100">
+                        <div className="flex items-center">
+                            <div className="bg-white/10 h-10 w-10 rounded-full overflow-hidden border border-white/5">
+                                <img src={PLAYLIST[index].imgUrl} alt="" className='w-full h-full object-cover' /></div>
+                            <div className="leading-3 max-w-0 group-hover:max-w-[30rem] overflow-hidden duration-300 ">
+                                <span className="pl-2 text-base truncate">{PLAYLIST[index].title}</span>
+                                <br />
+                                <span className='pl-2 text-xs text-white/60 truncate'>{PLAYLIST[index].author}</span>
+                            </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex items-center gap-8 text-2xl ">
+                            <button className="btn btn-secondary" onClick={prevSong} title="Previous">
+                                <FontAwesomeIcon icon={faBackwardStep} />
+                            </button>
+
+                            {isPlaying ? (
+                                <button className="btn btn-warning" onClick={pauseSound} title="Pause">
+                                    <FontAwesomeIcon icon={faPause} />
+                                </button>
+                            ) : (
+                                <button className="btn btn-primary" onClick={playSound} title="Play">
+                                    <FontAwesomeIcon icon={faPlay} />
+                                </button>
+                            )}
+
+                            <button className="btn btn-secondary" onClick={nextSong} title="Next">
+                                <FontAwesomeIcon icon={faForwardStep} />
+                            </button>
+                        </div>
+
+
+                    </div>
+
+                    {/* Volume slider */}
+                    <div className="relative" onMouseEnter={() => setVolOpen(true)} onMouseLeave={() => setVolOpen(false)}>
+                        <button onClick={() => setVolOpen(v => !v)}
+                            title="Volume"
+                            aria-expanded={volOpen}>
+                            <FontAwesomeIcon icon={faVolumeHigh} className="opacity-70" />
+                        </button>
+                        <div className={`absolute left-12 top-1/2 -translate-y-1/2 transition-all duration-300
+                   ${volOpen ? "opacity-100 -translate-x-10 bg-white/10 rounded-full px-4" : "opacity-0 -translate-x-2 pointer-events-none "}`}>
+                            <div className="w-48">
+                                <ElasticSlider
+                                    leftIcon={<FontAwesomeIcon icon={faVolumeOff} className="opacity-70" />}
+                                    rightIcon={<FontAwesomeIcon icon={faVolumeHigh} className="opacity-70" />}
+                                    startingValue={0}
+                                    defaultValue={Math.round(volume * 100)}  // 0..100
+                                    maxValue={100}
+                                    isStepped
+                                    stepSize={1}
+                                    onChange={(val) => setVolume(Math.min(1, Math.max(0, (val ?? 0) / 100)))}
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Controls */}
-                    <div className="flex items-center gap-4 text-xl">
-                        <button className="btn btn-secondary" onClick={prevSong} title="Previous">
-                            <FontAwesomeIcon icon={faBackwardStep} />
-                        </button>
 
-                        {isPlaying ? (
-                            <button className="btn btn-warning text-3xl" onClick={pauseSound} title="Pause">
-                                <FontAwesomeIcon icon={faPause} />
-                            </button>
-                        ) : (
-                            <button className="btn btn-primary text-3xl" onClick={playSound} title="Play">
-                                <FontAwesomeIcon icon={faPlay} />
-                            </button>
-                        )}
 
-                        <button className="btn btn-secondary" onClick={nextSong} title="Next">
-                            <FontAwesomeIcon icon={faForwardStep} />
-                        </button>
-                    </div>
                 </div>
 
-                {/* Volume slider */}
-                {/* <div className="flex items-center gap-3">
-                    <div className="flex-1 w-full">
-                        <ElasticSlider
-                            leftIcon={<FontAwesomeIcon icon={faVolumeOff} className="opacity-70" />}
-                            rightIcon={<FontAwesomeIcon icon={faVolumeHigh} className="opacity-70" />}
-                            startingValue={0}
-                            defaultValue={Math.round(volume * 100)}  // 0..100
-                            maxValue={100}
-                            isStepped
-                            stepSize={1}
-                            onChange={(val) => setVolume(Math.min(1, Math.max(0, (val ?? 0) / 100)))}
-                        />
-                    </div>
-                </div> */}
+
             </GlassComponent>
         </div>
     );
