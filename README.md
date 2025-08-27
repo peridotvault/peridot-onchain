@@ -7,8 +7,9 @@ For players, PeridotVault offers **personalized game recommendations**, **AI-dri
 ## 💁🏻 Hack Info
 
 - Category: Gaming, Web3, AI, Blockchain
-- Demo: [Live Demo](https://peridotvault.com)
+- Live Website: [Live Demo](https://peridotvault.com)
 - Introduction Video: [YouTube Link](https://www.youtube.com/watch?v=k-u_IqpcvDc&t=6s)
+- PeridotVault x Cubetopia Video: [YouTube Link](https://www.youtube.com/watch?v=73PcI2hzhh0)
 - Pitch Deck Video: [YouTube Link](https://www.youtube.com/watch?v=0ifMd-eaueI)
 
 ## 🌏 Ecosystem Overview
