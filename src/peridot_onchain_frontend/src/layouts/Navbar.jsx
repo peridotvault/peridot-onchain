@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
 import GlassComponent from '../components/atoms/GlassComponent';
+import { DownloadComponent } from '../components/atoms/DownloadComponent';
 
 export const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -47,11 +48,7 @@ export const Navbar = () => {
                         <Link to="/roadmap">Roadmap</Link>
                         <Link to="/#team">Team</Link>
                         <Link to="/ai">AI</Link>
-                        <Link to="/">
-                            <StarBorder as="button" color="#90EE90" speed="2s">
-                                Download
-                            </StarBorder>
-                        </Link>
+                        <DownloadComponent />
                     </nav>
 
 
@@ -109,11 +106,7 @@ export const Navbar = () => {
                     </ul>
 
                     <div className="mt-6">
-                        <a href="/#" onClick={() => setOpen(false)}>
-                            <StarBorder as="button" className="w-full" color="#90EE90" speed="2s">
-                                Download
-                            </StarBorder>
-                        </a>
+                        <DownloadComponent />
                     </div>
                 </nav>
             </div>

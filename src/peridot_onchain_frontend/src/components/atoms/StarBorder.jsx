@@ -9,7 +9,7 @@ const StarBorder = ({
 }) => {
     return (
         <Component
-            className={`relative inline-block overflow-hidden border border-accent_secondary/50 rounded-xl ${className}`}
+            className={`relative inline-block overflow-hidden border border-accent_secondary/50 rounded-xl`}
             style={{
                 padding: `${thickness}px 0`,
                 ...rest.style
@@ -30,7 +30,7 @@ const StarBorder = ({
                     animationDuration: speed,
                 }}
             ></div>
-            <div className="relative z-1 bg-background_primary  text-white text-center py-3 px-8 font-bold">
+            <div className={`relative z-1 ${className}`}>
                 {children}
             </div>
         </Component>
