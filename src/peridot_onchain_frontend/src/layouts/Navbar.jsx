@@ -44,7 +44,7 @@ export const Navbar = () => {
 
                     {/* Desktop actions */}
                     <nav className="hidden md:flex gap-8 items-center">
-                        <Link to="/#product">Product</Link>
+                        <Link to="https://peridotvault.gitbook.io/docs" target='_blank'>Docs</Link>
                         <Link to="/roadmap">Roadmap</Link>
                         <Link to="/#team">Team</Link>
                         <Link to="/ai">AI</Link>
@@ -99,7 +99,9 @@ export const Navbar = () => {
                     </div>
 
                     <ul className="space-y-3 text-lg">
-                        <li><Link to="/#product" className="block py-2" onClick={() => setOpen(false)}>Product</Link></li>
+                        <li>
+                            <Link to="https://peridotvault.gitbook.io/docs" className="block py-2" onClick={() => setOpen(false)} target='_blank'>Docs</Link>
+                        </li>
                         <li><Link to="/roadmap" className="block py-2" onClick={() => setOpen(false)}>Roadmap</Link></li>
                         <li><Link to="/#team" className="block py-2" onClick={() => setOpen(false)}>Team</Link></li>
                         <li><Link to="/ai" className="block py-2" onClick={() => setOpen(false)}>AI</Link></li>
