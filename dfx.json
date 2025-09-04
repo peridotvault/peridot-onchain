@@ -2,14 +2,24 @@
   "canisters": {
     "peridot_user": {
       "main": "src/peridot_onchain_backend/user/main.mo",
-      "type": "motoko"
+      "type": "motoko",
+      "moc": {
+        "args": [
+          "--enhanced-orthogonal-persistence"
+        ]
+      }
     },
     "peridot_app": {
       "main": "src/peridot_onchain_backend/app/main.mo",
       "type": "motoko",
       "dependencies": [
         "peridot_user"
-      ]
+      ],
+      "moc": {
+        "args": [
+          "--enhanced-orthogonal-persistence"
+        ]
+      }
     },
     "peridot_onchain_frontend": {
       "dependencies": [
