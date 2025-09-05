@@ -11,7 +11,7 @@ import ParticlesComponent from '../../components/particles/particles';
 import { SectionAI } from './SectionAI';
 import { SectionUI } from './SectionUI';
 import AnimatedContent from '../../components/animations/AnimatedContent';
-import { FloatingActionButton } from '../../components/buttons/FloatingActionButton'; 
+import { FloatingActionButton } from '../../components/chat/FloatingActionButton'; 
 
 export const LandingPage = () => {
     useEffect(() => {
