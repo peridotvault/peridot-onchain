@@ -11,6 +11,7 @@ import ParticlesComponent from '../../components/particles/particles';
 import { SectionAI } from './SectionAI';
 import { SectionUI } from './SectionUI';
 import AnimatedContent from '../../components/animations/AnimatedContent';
+import { FloatingActionButton } from '../../components/chat/FloatingActionButton'; 
 
 export const LandingPage = () => {
     useEffect(() => {
@@ -21,8 +22,6 @@ export const LandingPage = () => {
     return (
         <div className='flex flex-col items-center justify-center text-lg'>
             <ParticlesComponent />
-
-
             <Section1 />
             <Section2 />
             <Section3 />
@@ -33,6 +32,7 @@ export const LandingPage = () => {
             <SectionWhitepaperRoadmap />
             <SectionTeam />
             <GetUpdate />
+            <FloatingActionButton />
         </div>
     )
 }
