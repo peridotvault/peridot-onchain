@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import StarBorder from '../atoms/StarBorder';
 import { peridot_ai } from "declarations/peridot_ai/index.js"
+import { Bouncy } from 'ldrs/react'
+import 'ldrs/react/Bouncy.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesomeIcon
+import { faChevronRight } from '@fortawesome/free-solid-svg-icons'; // Import the icon
 
 export const FloatingActionButton = () => {
   const [chatDisplayed, setChatDisplayed] = useState(false);
@@ -15,10 +19,10 @@ export const FloatingActionButton = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Effect to scroll down whenever a new message is added
+  // Effect to scroll down whenever a new message or loading indicator appears
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isAgentResponding]); // Add isAgentResponding as a dependency
 
   // Effect for handling clicks outside the chat window
   useEffect(() => {
@@ -34,34 +38,38 @@ export const FloatingActionButton = () => {
   }, []);
 
   const handleOnChatDisplayed = async () => {
-    setChatDisplayed(!chatDisplayed);
-    setIsAgentResponding(true);
-    if (messages.length === 0) {
+    // Toggle display state first for immediate UI feedback
+    setChatDisplayed(prev => !prev);
+    
+    // Fetch initial message only if chat is being opened and is empty
+    if (!chatDisplayed && messages.length === 0) {
+      setIsAgentResponding(true);
       const response = await peridot_ai.chat("Hello");
       const aiResponse = {
           id: Date.now() + 1,
           sender: 'ai',
           text: response,
         };
-      setMessages((prevMessages) => [...prevMessages, aiResponse]);
+      setMessages([aiResponse]); // Initialize messages with the response
+      setIsAgentResponding(false);
     }
-    setIsAgentResponding(false);
   }
 
   // Function to handle form submission
   const handleSendMessage = async (e) => {
-    setIsAgentResponding(true);
     e.preventDefault();
-    if (inputValue.trim() === '') return;
+    if (inputValue.trim() === '' || isAgentResponding) return;
 
-    // Add the user's message to the list
     const userMessage = {
       id: Date.now(), 
       sender: 'human',
       text: inputValue,
     };
+
+    // Add user message and immediately show loading indicator
     setMessages((prevMessages) => [...prevMessages, userMessage]);
-    setInputValue(''); // Clear the input field
+    setInputValue(''); 
+    setIsAgentResponding(true);
 
     const response = await peridot_ai.chat(inputValue.trim())
     const aiResponse = {
@@ -69,16 +77,16 @@ export const FloatingActionButton = () => {
         sender: 'ai',
         text: response,
       };
+      
+    // Replace loading indicator with the actual response
     setMessages((prevMessages) => [...prevMessages, aiResponse]);
     setIsAgentResponding(false);
   };
 
   return (
     <div ref={chatRef} className="fixed bottom-20 right-20 flex flex-col items-end">
-      {/* --- CHAT WINDOW --- */}
       <div className={chatDisplayed ? 'bg-white/90 backdrop-blur-md w-[512px] h-[640px] mb-4 rounded-xl flex flex-col overflow-hidden shadow-2xl' : 'hidden'}>
         
-        {/* Header */}
         <div className='border-b-2 border-b-black/25 p-4'>
           <div className='flex items-center justify-between gap-6'>
             <div>
@@ -90,7 +98,6 @@ export const FloatingActionButton = () => {
           </div>
         </div>
 
-        {/* Messages list - Renders messages dynamically */}
         <div className='flex-1 overflow-y-auto scrollbar-hide p-6 flex flex-col gap-6'>
           {messages.map((message) => (
             <div
@@ -113,27 +120,39 @@ export const FloatingActionButton = () => {
               </div>
             </div>
           ))}
-          {/* Empty div to act as a reference for scrolling */}
+
+          {/* --- LOADING INDICATOR --- */}
+          {/* This block is rendered only when isAgentResponding is true */}
+          {isAgentResponding && (
+            <div className="flex flex-col items-start">
+              <p className="font-semibold mb-1 text-black/60">Peridot Agent</p>
+              <div className="max-w-[416px] p-4 bg-black/20 rounded-e-xl rounded-bl-xl flex items-center justify-center">
+                <Bouncy
+                  size="24"
+                  speed="2.5"
+                  color="black" 
+                />
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Chat Input */}
         <div className='border-t-2 border-t-black/25 p-4'>
-          <form className='flex items-center' onSubmit={handleSendMessage}>
+          <form className='flex items-center gap-4' onSubmit={handleSendMessage}>
             <input
               type="text"
-              placeholder="Type your message..."
+              placeholder={isAgentResponding ? "Waiting for response..." : "Type your message..."}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className={isAgentResponding ? "flex-1 bg-black/10 border border-black/30 rounded-lg px-4 py-2 text-black placeholder:text-black/50 focus:outline-none focus:ring-2 focus:ring-accent_secondary" : "flex-1 bg-transparent border border-black/30 rounded-lg px-4 py-2 text-black placeholder:text-black/50 focus:outline-none focus:ring-2 focus:ring-accent_secondary"}
+              className="flex-1 bg-transparent border border-black/30 rounded-lg px-4 py-2 text-black placeholder:text-black/50 focus:outline-none focus:ring-2 focus:ring-accent_secondary disabled:bg-black/10"
               disabled={isAgentResponding}
             />
           </form>
         </div>
       </div>
       
-      {/* --- FLOATING BUTTON --- */}
-      <button onClick={() => handleOnChatDisplayed()}>
+      <button onClick={handleOnChatDisplayed}>
         <StarBorder speed='2s' className='py-3 px-6 bg-accent_secondary to-accent_secondary flex justify-center items-center gap-3 hover:bg-white hover:text-black duration-300 max-md:text-base group'>
           <span className="font-bold">
             Chat with AI
