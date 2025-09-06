@@ -1,13 +1,9 @@
 import Blob "mo:base/Blob";
 import Text "mo:base/Text";
+import Json "mo:json";
 import IC "ic:aaaaa-aa";
 
 persistent actor PeridotAI {
-
-  public shared query func HiPeridotAI() : async Text {
-    return "Hi PeridotVault";
-  };
-
   public query func transform({
     context : Blob;
     response : IC.http_request_result;
@@ -18,7 +14,7 @@ persistent actor PeridotAI {
   };
 
   public shared func chat(prompt : Text) : async Text {
-    let url : Text = "https://chatbot.peridotvault.com/chat";
+    let url : Text = "https://chatbot.peridotvault.com/api/v1/chat";
     let request_headers = [{ name = "Content-Type"; value = "application/json" }];
 
     let request_body_json : Text = "{ \"query\": \"" # prompt # "\" }";
@@ -26,7 +22,7 @@ persistent actor PeridotAI {
 
     let http_request : IC.http_request_args = {
       url = url;
-      max_response_bytes = null; //optional for request
+      max_response_bytes = null;
       headers = request_headers;
       body = ?request_body;
       method = #post;
@@ -44,8 +40,19 @@ persistent actor PeridotAI {
       case (?y) { y };
     };
 
-    let result : Text = decoded_text # ". See more info of the request sent at: " # url # "/inspect";
-    result;
+    let response : Text = switch (Json.parse(decoded_text)) {
+      case (#ok(parsed)) {
+        switch (Json.getAsText(parsed, "response")) {
+          case (#ok(value)) { value };
+          case (#err(_)) { "Error getting response field" };
+        };
+      };
+      case (#err(_)) {
+        "Error parsing JSON";
+      };
+    };
+
+    response;
   }
 
 };
