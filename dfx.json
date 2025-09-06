@@ -21,6 +21,15 @@
         ]
       }
     },
+    "peridot_ai": {
+      "main": "src/peridot_onchain_backend/ai/main.mo",
+      "type": "motoko",
+      "moc": {
+        "args": [
+          "--enhanced-orthogonal-persistence"
+        ]
+      }
+    },
     "peridot_onchain_frontend": {
       "dependencies": [
         "peridot_user",
@@ -36,7 +45,7 @@
   "defaults": {
     "build": {
       "args": "",
-      "packtool": ""
+      "packtool": "mops sources"
     }
   },
   "output_env_file": ".env",
