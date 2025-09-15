@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHandPointDown } from '@fortawesome/free-solid-svg-icons'
+import React, { useEffect, useRef, useState } from "react";
 import { peridot_ai } from "declarations/peridot_ai/index.js"
 
-export const AiSectionWelcome = () => {
+export const AiChat = () => {
+    const [mode, setMode] = useState("welcome"); // "welcome" | "chat"
     const [input, setInput] = useState("");
     const [msgs, setMsgs] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -25,6 +24,7 @@ export const AiSectionWelcome = () => {
         const userMsg = { id: crypto.randomUUID(), role: "user", text };
         setMsgs((m) => [...m, userMsg]);
         setLoading(true);
+        setMode("chat");
         setInput("");
 
         try {
@@ -40,34 +40,38 @@ export const AiSectionWelcome = () => {
         }
     }
 
-    async function onKeyDown(e) {
-        if (e.key === "Enter" && !loading) { 
+    function onKeyDown(e) {
+        if (e.key === "Enter") {
             e.preventDefault();
-            await send(input);
+            send(input);
         }
     }
 
-    return (
-        <section className="w-full h-screen p-4 flex items-center justify-evenly relative bg-background_secondary">
-            <div>
-                <div>
-                    <div className='mb-24'>
-                        <p className='text-6xl font-medium'>Meet Our Intelligent AI</p>
-                    </div>
-                    <div>
-                        <p className='text-10xl text-accent_primary font-extrabold'>Peri</p>
-                    </div>
-                </div>
-            </div>
-            <div className='rounded-2xl border border-white/10 w-[768px] max-h-[768px] p-8 flex flex-col gap-8'>
-                {/* Header */}
-                <div className="flex flex-col items-center gap-4 text-center">
+    if (mode === "welcome") {
+        return (
+            <div className="h-full z-10 flex items-center justify-center w-full pointer-events-none p-8 text-center flex-col gap-16">
+                <div className="flex flex-col items-center gap-4">
                     <h1 className="text-4xl font-bold max-md:text-3xl">How can I help you today?</h1>
                     <span className="text-text_disabled text-xl">Give Peri a task to work</span>
                 </div>
 
-                {/* Scrollable Message List */}
-                <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto text-left">
+                <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    placeholder="Give Peri a task..."
+                    className="bg-background_primary border border-white/10 rounded-lg py-2 px-6 w-full max-w-[400px] pointer-events-auto"
+                />
+            </div>
+        );
+    }
+
+    return (
+        <div className="absolute w-full h-full flex justify-center">
+
+            <div className=" w-[600px] h-full inset-0 flex flex-col px-8 py-32">
+                <div ref={listRef} className="flex-1 overflow-y-auto  space-y-4">
                     {msgs.map((m) => (
                         <div key={m.id} className={`w-full flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                             <div className="max-w-[80%]">
@@ -98,21 +102,26 @@ export const AiSectionWelcome = () => {
                     )}
                 </div>
 
-                {/* Input */}
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={onKeyDown}
-                    placeholder={loading ? "Thinking..." : "Give Peri a task..."}
-                    className="bg-background_primary border border-white/10 rounded-lg py-2 px-6 w-full disabled:opacity-50"
-                    disabled={loading} // Add this line
-                />
+                <div className="border-t border-white/10 p-3">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={onKeyDown}
+                            placeholder="Type a message…"
+                            className="flex-1 bg-background_primary border border-white/10 rounded-lg px-4 py-2 outline-none focus:border-white/20 transition-colors"
+                        />
+                        <button
+                            onClick={() => send(input)}
+                            disabled={loading || !input.trim()}
+                            className="px-4 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Send
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div className="absolute z-0 bottom-8 left-0 flex flex-col items-center gap-2 w-full justify-center animate-bounce">
-                <span>Explore More</span>
-                <FontAwesomeIcon icon={faHandPointDown} />
-            </div>
-        </section>
-    )
-}
+        </div>
+    );
+};
