@@ -29,6 +29,9 @@ export default {
         "danger": "#c5604c",
         "warning": "#deb887",
       },
+      fontSize: {
+        '10xl': '160px'
+      },
       backgroundImage: {
         'hero-pattern': "url('/assets/bg-text.gif')",
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
