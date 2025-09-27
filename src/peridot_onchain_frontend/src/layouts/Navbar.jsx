@@ -1,14 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import StarBorder from '../components/atoms/StarBorder';
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
-import GlassComponent from '../components/atoms/GlassComponent';
 import { DownloadComponent } from '../components/atoms/DownloadComponent';
+import StaggeredMenu from '../components/atoms/StaggeredMenu';
 
 export const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [open, setOpen] = useState(false);
+
+    const menuItems = [
+        { label: 'PERI', ariaLabel: 'View our services', link: '/peri', target: '_self' },
+        { label: 'AI', ariaLabel: 'Get in touch', link: '/ai', target: '_self' },
+        { label: 'Roadmap', ariaLabel: 'Learn about us', link: '/roadmap', target: '_self' },
+        { label: 'Team', ariaLabel: 'View our services', link: '/#team', target: '_self' },
+        { label: 'Docs', ariaLabel: 'Go to home page', link: 'https://peridotvault.gitbook.io/docs', target: '_blank' },
+    ];
+
+    const socialItems = [
+        { label: 'X', link: 'https://x.com/peridotvault' },
+        { label: 'Instagram', link: 'https://www.instagram.com/peridotvault/' },
+        { label: 'Discord', link: 'https://discord.com/invite/uBW4dvTR5E' },
+        { label: 'Github', link: 'https://github.com/peridotvault' },
+        { label: 'Telegram', link: 'https://t.me/peridotvault' },
+    ];
 
     // blur background on scroll (punyamu)
     useEffect(() => {
@@ -31,8 +44,8 @@ export const Navbar = () => {
     }, []);
 
     return (
-        <div className="p-4 fixed top-0 left-0 w-full z-40">
-            <header className={` transition-all duration-300 rounded-2xl flex justify-between border ${isScrolled ? 'backdrop-blur-lg border-white/10' : 'border-transparent'}`}>
+        <header className="p-4 fixed top-0 left-0 w-full z-40">
+            <div className={` transition-all duration-300 rounded-2xl flex justify-between border ${isScrolled ? 'backdrop-blur-lg border-white/10' : 'border-transparent'} max-md:hidden`}>
                 <div className="w-full px-8 py-4 flex items-center justify-between">
                     <Link to={"/#"} className="text-2xl flex items-center gap-2">
                         <img src="./Logo-full.png" className="h-6" alt="PeridotVault logo" />
@@ -43,75 +56,32 @@ export const Navbar = () => {
                     </Link>
 
                     {/* Desktop actions */}
-                    <nav className="hidden md:flex gap-8 items-center">
-                        <Link to="https://peridotvault.gitbook.io/docs" target='_blank'>Docs</Link>
-                        <Link to="/roadmap">Roadmap</Link>
-                        <Link to="/#team">Team</Link>
-                        <Link to="/ai">AI</Link>
-                        <DownloadComponent />
+                    <nav className="gap-8 items-center flex text-lg">
+                        {menuItems.map((item, index) => (
+                            <Link to={item.link} aria-label={item.label} target={item.target}>{item.label}</Link>
+                        ))}
                     </nav>
 
-
-                    {/* Mobile hamburger */}
-                    <GlassComponent className="md:hidden rounded-lg overflow-hidden">
-                        <button
-                            className="inline-flex items-center justify-center hover:bg-white/5 p-4 duration-300"
-                            onClick={() => setOpen(true)}
-                            aria-label="Open menu"
-                            aria-controls="mobile-menu"
-                            aria-expanded={open}
-                        >
-                            <FontAwesomeIcon icon={faBars} />
-                        </button>
-                    </GlassComponent>
+                    <DownloadComponent />
                 </div>
-            </header>
-
-            {/* Mobile drawer */}
-            <div className={`md:hidden fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`}>
-                {/* overlay */}
-                <div
-                    className={`absolute inset-0 bg-black/50 transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}
-                    onClick={() => setOpen(false)}
-                />
-                {/* panel */}
-                <nav
-                    id="mobile-menu"
-                    className={`absolute top-0 right-0 h-full w-[80%] max-w-sm bg-background_primary border-l border-white/10 p-6 transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}
-                    role="dialog"
-                    aria-modal="true"
-                >
-                    <div className="flex items-center justify-between mb-6">
-                        <Link to={"/#"} className="text-2xl flex items-center gap-2" onClick={() => setOpen(false)}>
-                            <img src="./Logo-full.png" className="h-6" alt="PeridotVault logo" />
-                            <div>
-                                <span className="font-bold">Peridot</span>
-                                <span>Vault</span>
-                            </div>
-                        </Link>
-                        <button
-                            className="py-2 px-4 rounded-lg border border-white/15 hover:bg-white/5"
-                            onClick={() => setOpen(false)}
-                            aria-label="Close menu"
-                        >
-                            <FontAwesomeIcon icon={faXmark} />
-                        </button>
-                    </div>
-
-                    <ul className="space-y-3 text-lg">
-                        <li>
-                            <Link to="https://peridotvault.gitbook.io/docs" className="block py-2" onClick={() => setOpen(false)} target='_blank'>Docs</Link>
-                        </li>
-                        <li><Link to="/roadmap" className="block py-2" onClick={() => setOpen(false)}>Roadmap</Link></li>
-                        <li><Link to="/#team" className="block py-2" onClick={() => setOpen(false)}>Team</Link></li>
-                        <li><Link to="/ai" className="block py-2" onClick={() => setOpen(false)}>AI</Link></li>
-                    </ul>
-
-                    <div className="mt-6">
-                        <DownloadComponent />
-                    </div>
-                </nav>
             </div>
-        </div>
+
+            <div className='fixed top-0 left-0 inset-0 z-50 md:hidden'>
+                <StaggeredMenu
+                    position="right"
+                    items={menuItems}
+                    socialItems={socialItems}
+                    displaySocials={true}
+                    displayItemNumbering={true}
+                    menuButtonColor="#fff"
+                    openMenuButtonColor="#000"
+                    changeMenuColorOnOpen={true}
+                    colors={['#90EE90', '#4D8A6A']}
+                    accentColor="#4D8A6A"
+                    onMenuOpen={() => console.log('Menu opened')}
+                    onMenuClose={() => console.log('Menu closed')}
+                />
+            </div>
+        </header>
     );
 };

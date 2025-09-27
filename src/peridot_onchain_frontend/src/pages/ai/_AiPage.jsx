@@ -12,6 +12,7 @@ export const AiPage = () => {
     window.scrollTo(0, 0);
 
   }, [])
+
   return (
     <div className='flex flex-col items-center justify-center text-lg'>
       <AiSectionWelcome />

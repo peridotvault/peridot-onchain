@@ -5,6 +5,7 @@ import { LandingPage } from './pages/landing/_LandingPage';
 import { NotFound } from './pages/additional/NotFound';
 import { AiPage } from './pages/ai/_AiPage';
 import { RoadmapPage } from './pages/roadmap/_RoadmapPage';
+import { PeriPage } from './pages/peri/_PeriPage';
 
 
 const router = createBrowserRouter([
@@ -15,6 +16,11 @@ const router = createBrowserRouter([
             {
                 index: true,
                 element: <LandingPage />
+            },
+            {
+                path: "peri",
+                element: <PeriPage />,
+                handle: { noFooter: true }
             },
             {
                 path: "ai",
