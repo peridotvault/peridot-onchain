@@ -9,7 +9,7 @@ const StarBorder = ({
 }) => {
     return (
         <Component
-            className={`relative inline-block overflow-hidden border border-accent_secondary/50 rounded-xl`}
+            className={`relative inline-block overflow-hidden border border-accent_secondary/50 bg-accent_secondary rounded-xl`}
             style={{
                 padding: `${thickness}px 0`,
                 ...rest.style
