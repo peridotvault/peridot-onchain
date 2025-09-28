@@ -20,7 +20,7 @@ export const AiSectionPersonalized = () => {
 
                 <div className="w-full grid grid-cols-5 max-lg:grid-cols-2 gap-8">
                     <div className="col-span-3 max-lg:col-span-2 relative max-lg:aspect-video overflow-hidden rounded-2xl">
-                        <img src="./assets/views/ai/gaming.gif" alt="" className='w-full h-full absolute top-0 left-0 object-cover' draggable={false} />
+                        <img src="./assets/views/ai/gaming.webp" alt="" className='w-full h-full absolute top-0 left-0 object-cover' draggable={false} />
                         <h3 className='absolute bottom-0 left-0 p-12 max-md:p-8 text-3xl max-md:text-2xl'>Enjoy personalized suggestions across both traditional and blockchain-based games</h3>
                     </div>
                     {/* content feature  */}

@@ -8,7 +8,7 @@ export const SectionNativeWallet = () => {
         {
             title: "Built for Gamers",
             description: "A wallet that works like magic—effortless, integrated, and ready when you are.",
-            image: "https://plus.unsplash.com/premium_vector-1727089084561-deb0f1033e93?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            image: "./assets/views/landing/build-for-gamers.webp",
         },
         {
             title: "Secure & Self-Custodial",
