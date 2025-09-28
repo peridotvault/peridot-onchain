@@ -17,7 +17,7 @@ export const SectionWhitepaperRoadmap = () => {
                     <h2 className='text-4xl font-bold max-md:text-3xl'>{title}</h2>
                     <p className='max-md:text-base'>{description}</p>
                     <div className="py-4 max-md:py-2">
-                        <Link to={href} className='border py-4 max-md:py-2 px-6 max-md:px-4 max-md:text-base max-md:rounded-lg rounded-xl border-text_disabled duration-300 hover:-translate-y-1'>{hookText}</Link>
+                        <Link to={href} className='border py-4 max-md:py-2 px-6 max-md:px-4 max-md:text-base max-md:rounded-lg rounded-xl border-white/20 duration-300 hover:-translate-y-1 bg-white/10 hover:bg-accent_secondary'>{hookText}</Link>
                     </div>
                 </div>
             </section>
