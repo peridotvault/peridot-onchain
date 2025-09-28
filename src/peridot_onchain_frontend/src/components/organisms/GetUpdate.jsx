@@ -11,7 +11,7 @@ export const GetUpdate = () => {
                     <div className="flex h-full flex-col justify-center max-w-[700px] py-24 max-md:py-12 max-lg:w-full max-lg:justify-start gap-8 max-md:gap-6">
                         <h2 className='text-4xl max-md:text-2xl'>Get Peridot updates, insights, and exclusive announcements delivered directly to you.</h2>
                         <div className="flex gap-4 w-full max-w-[400px] ">
-                            <input type="email" name="" id="" className='py-4 px-8 max-md:px-6 max-md:text-base rounded-xl w-full bg-white/5 backdrop-blur-lg border-white/10' placeholder='Email Address' required />
+                            <input type="email" name="" id="" className='py-4 px-8 max-md:px-6 max-md:text-base rounded-xl w-full bg-white/10 backdrop-blur-lg border border-white/20 placeholder:text-white/80 outline-none focus:scale-105 duration-300' placeholder='Email Address' required />
                             <button className='aspect-square bg-accent_secondary h-full rounded-xl text-white'>
                                 <FontAwesomeIcon icon={faChevronRight} />
                             </button>

@@ -58,7 +58,7 @@ export const Navbar = () => {
                     {/* Desktop actions */}
                     <nav className="gap-8 items-center flex text-lg">
                         {menuItems.map((item, index) => (
-                            <Link to={item.link} aria-label={item.label} target={item.target}>{item.label}</Link>
+                            <Link to={item.link} aria-label={item.label} className='hover:font-bold duration-300 hover:text-accent_primary' target={item.target}>{item.label}</Link>
                         ))}
                     </nav>
 
