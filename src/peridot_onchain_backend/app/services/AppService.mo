@@ -84,7 +84,7 @@ module AppServiceModule {
 
         let priceMerged : ?Nat = switch (input.price) {
           case (null) app.price; // pertahankan lama
-          case (?p) ?(p * Core.Decimal); // skala ke subunit
+          case (?p) ?(p * (10 ** Core.Decimal)); // skala ke subunit
         };
 
         // 4) merge field opsional
@@ -229,5 +229,15 @@ module AppServiceModule {
 
     #ok(Buffer.toArray(out));
   };
+
+  public func getTotalBuyers(appId : Core.AppId, purchases : PurchaseTypes.PurchaseHashMap) : ApiResponse<Nat> {
+    var count : Nat = 0;
+    for ((userId, list) in purchases.entries()) {
+      label search for (p in list.vals()) {
+        if (p.appId == appId) { count += 1; break search };
+      };
+    };
+    #ok(count);
+  }
 
 };

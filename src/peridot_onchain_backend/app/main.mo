@@ -102,6 +102,10 @@ persistent actor PeridotApp {
     await AppService.getMyApps(apps, purchases, msg.caller);
   };
 
+  public query func getTotalBuyers(appId : Core.AppId) : async ApiResponse<Nat> {
+    AppService.getTotalBuyers(appId, purchases);
+  };
+
   // update
   public shared (msg) func updateApp(updateApp : AppTypes.UpdateApp, appId : Core.AppId) : async ApiResponse<AppType> {
     await AppService.updateApp(apps, msg.caller, appId, updateApp);
@@ -121,8 +125,6 @@ persistent actor PeridotApp {
     let merchant = Principal.fromText(Core.PeridotAccount);
     await PurchaseService.buyApp(purchases, apps, appId, msg.caller, Core.TokenLedgerCanister, spenderPrincipal, merchant);
   };
-
-  // get
 
   //  ===============================================================
   // Announcement ===================================================

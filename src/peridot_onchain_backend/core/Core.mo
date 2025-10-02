@@ -3,8 +3,8 @@ import Principal "mo:base/Principal";
 import Result "mo:base/Result";
 
 module {
-  public let TokenLedgerCanister : Text = "a4js4-wiaaa-aaaak-qijqa-cai";
-  public let Decimal : Nat = 1_0000_0000;
+  public let TokenLedgerCanister : Text = "b4osj-vyaaa-aaaap-an4bq-cai";
+  public let Decimal : Nat = 8;
   public let PeridotAccount : Text = "qmc7g-dzjeq-haics-mfv4z-a6ypg-3m3yo-cvdrf-kyy3a-aiguy-5yvzh-kae";
   public type Timestamp = Time.Time;
   public type AppId = Nat;

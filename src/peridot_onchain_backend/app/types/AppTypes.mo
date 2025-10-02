@@ -6,6 +6,7 @@ import Core "../../core/Core";
 module AppTypesModule {
   // Map utama: AppId -> App
   public type AppHashMap = HashMap.HashMap<Core.AppId, App>;
+  public type OS = Text; // #windows | #macos | #linux | #android
 
   // =========================
   // Create DTO
@@ -98,15 +99,6 @@ module AppTypesModule {
     checksum : Text; // integrity (ex: sha256)
     content : Text; // payload/listing file
     createdAt : Core.Timestamp;
-  };
-
-  // =========================
-  // OS
-  // =========================
-  public type OS = {
-    #windows;
-    #macos;
-    #linux;
   };
 
   // =========================
