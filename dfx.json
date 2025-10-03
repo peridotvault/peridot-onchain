@@ -30,6 +30,15 @@
         ]
       }
     },
+    "peridot_factory": {
+      "main": "src/peridot_onchain_backend/factory/main.mo",
+      "type": "motoko",
+      "moc": {
+        "args": [
+          "--enhanced-orthogonal-persistence"
+        ]
+      }
+    },
     "peridot_onchain_frontend": {
       "dependencies": [
         "peridot_user",

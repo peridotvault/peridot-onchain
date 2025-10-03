@@ -1,11 +1,11 @@
 import UserTypes "../types/UserTypes";
 import DeveloperTypes "../types/DeveloperTypes";
 
-import Core "../../core/Core";
+import Core "../../_core_/Core";
 import Time "mo:base/Time";
 import Principal "mo:base/Principal";
 import Bool "mo:base/Bool";
-import TokenLedger "./../../shared/TokenLedger";
+import TokenLedger "./../../_core_/shared/TokenLedger";
 // import Int "mo:base/Int";
 // import Array "mo:base/Array";
 // import Buffer "mo:base/Buffer";

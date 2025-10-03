@@ -1,11 +1,12 @@
 import Text "mo:base/Text";
 import Float "mo:base/Float";
 import HashMap "mo:base/HashMap";
-import Core "../../core/Core";
+import Core "../../_core_/Core";
 
 module AppTypesModule {
   // Map utama: AppId -> App
   public type AppHashMap = HashMap.HashMap<Core.AppId, App>;
+  public type OS = Text;
 
   // =========================
   // Create DTO
@@ -75,10 +76,14 @@ module AppTypesModule {
 
   public type WebBuild = {
     url : Text; // ex: https://game.example/play
+    processor : Text;
+    memory : Nat; // in MB/GB
+    storage : Nat; // in MB/GB
+    graphics : Text;
   };
 
   public type NativeBuild = {
-    os : OS; // #windows | #macos | #linux
+    os : OS; // windows | macos | linux | Android
     manifests : [Manifest];
     processor : Text;
     memory : Nat; // in MB/GB
@@ -98,15 +103,6 @@ module AppTypesModule {
     checksum : Text; // integrity (ex: sha256)
     content : Text; // payload/listing file
     createdAt : Core.Timestamp;
-  };
-
-  // =========================
-  // OS
-  // =========================
-  public type OS = {
-    #windows;
-    #macos;
-    #linux;
   };
 
   // =========================

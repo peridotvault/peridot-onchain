@@ -1,7 +1,9 @@
 import AppTypes "./types/AppTypes";
 import PurchaseTypes "types/PurchaseTypes";
+import AppService "services/AppService";
+import PurchaseService "services/PurchaseService";
 
-import Core "./../core/Core";
+import Core "./../_core_/Core";
 import HashMap "mo:base/HashMap";
 import Nat "mo:base/Nat";
 import Text "mo:base/Text";
@@ -9,8 +11,7 @@ import Hash "mo:base/Hash";
 import Iter "mo:base/Iter";
 import Principal "mo:base/Principal";
 import AppAnnouncementTypes "types/AppAnnouncementTypes";
-
-import PGL1Types "types/PGL1Types"
+import AppAnnouncementService "services/AppAnnouncementService";
 
 persistent actor PeridotApp {
   // TYPES ==========================================================
@@ -22,15 +23,8 @@ persistent actor PeridotApp {
   type AnnUserKey = AppAnnouncementTypes.AnnUserKey;
 
   // SNAPSHOTS ======================================================
-  private var nextGameId : Core.AppId = 0;
-  private var init = {
-    pgl1_cover_image : Text = "https://...";
-    pgl1_name : Text = "PeridotVault Game";
-    pgl1_description : Text = "PeridotVault Descriptions";
-    pgl1_price : ?Nat = ?0;
-    pgl1_required_age : ?Nat = ?0;
-    pgl1_metadata : ?PGL1Types.Metadata = null;
-  };
+  private var nextId : Core.AppId = 0;
+  private var nextAnnouncementId : Core.AnnouncementId = 0;
 
   private var appEntries : [(Core.AppId, AppType)] = [];
   private var purchaseEntries : [(Core.UserId, [PurchaseType])] = [];
@@ -78,29 +72,104 @@ persistent actor PeridotApp {
   };
 
   //  ===============================================================
-  // IGL-1 ==========================================================
+  // App ============================================================
   //  ===============================================================
-  public query func pgl1_cover_image() : async Text {
-    return init.pgl1_name;
+  // create
+  public shared (msg) func createApp(createApp : AppTypes.CreateApp) : async ApiResponse<AppType> {
+    let id = nextId;
+    nextId += 1;
+    await AppService.createApp(apps, msg.caller, createApp, id);
   };
 
-  public query func pgl1_name() : async Text {
-    return init.pgl1_name;
+  // get
+  public query func getAllApps() : async ApiResponse<[AppType]> {
+    AppService.getAllApps(apps);
   };
 
-  public query func pgl1_description() : async Text {
-    return init.pgl1_description;
+  public query func getAllPublishApps() : async ApiResponse<[AppType]> {
+    AppService.getAllPublishApps(apps);
   };
 
-  public query func pgl1_price() : async ?Nat {
-    return init.pgl1_price;
+  public query func getAppById(appId : Core.AppId) : async ApiResponse<AppType> {
+    AppService.getAppById(apps, appId);
   };
 
-  public query func pgl1_required_age() : async ?Nat {
-    return init.pgl1_required_age;
+  public shared (msg) func getAppByDeveloperId() : async ApiResponse<[AppType]> {
+    AppService.getAppByDeveloperId(apps, msg.caller);
   };
 
-  public query func pgl1_metadata() : async ?PGL1Types.Metadata {
-    return init.pgl1_metadata;
+  public shared (msg) func getMyApps() : async ApiResponse<[AppType]> {
+    await AppService.getMyApps(apps, purchases, msg.caller);
+  };
+
+  // update
+  public shared (msg) func updateApp(updateApp : AppTypes.UpdateApp, appId : Core.AppId) : async ApiResponse<AppType> {
+    await AppService.updateApp(apps, msg.caller, appId, updateApp);
+  };
+
+  // delete
+  public shared (msg) func deleteApp(appId : Core.AppId) : async ApiResponse<Text> {
+    await AppService.deleteApp(apps, msg.caller, appId);
+  };
+
+  //  ===============================================================
+  // Purchase =======================================================
+  //  ===============================================================
+  // create
+  public shared (msg) func buyApp(appId : Nat) : async ApiResponse<PurchaseType> {
+    let spenderPrincipal = Principal.fromActor(PeridotApp);
+    let merchant = Principal.fromText(Core.PeridotAccount);
+    await PurchaseService.buyApp(purchases, apps, appId, msg.caller, Core.TokenLedgerCanister, spenderPrincipal, merchant);
+  };
+
+  // get
+
+  //  ===============================================================
+  // Announcement ===================================================
+  //  ===============================================================
+  // announcementInteraction like/dislike by AnnId
+  // CREATE
+  public shared (msg) func createAnnouncement(appId : Core.AppId, annInput : AppAnnouncementTypes.DTOAppAnnouncement) : async ApiResponse<AppAnnouncementType> {
+    let id = nextAnnouncementId;
+    nextAnnouncementId += 1;
+    AppAnnouncementService.createAnnouncement(announcements, apps, appId, msg.caller, annInput, id);
+  };
+
+  // GET
+  public query func getAllAnnouncementsByAppId(appId : Core.AppId) : async ApiResponse<[AppAnnouncementType]> {
+    AppAnnouncementService.getAllAnnouncementsByAppId(announcements, appId);
+  };
+
+  public query func getAnnouncementsByAnnouncementId(announcementId : Core.AnnouncementId) : async ApiResponse<AppAnnouncementType> {
+    AppAnnouncementService.getAnnouncementsByAnnouncementId(announcements, announcementId);
+  };
+
+  // UPDATE
+  public shared (msg) func updateAnnouncement(announcementId : Core.AnnouncementId, annInput : AppAnnouncementTypes.DTOAppAnnouncement) : async ApiResponse<AppAnnouncementType> {
+    AppAnnouncementService.updateAnnouncement(announcements, msg.caller, annInput, announcementId);
+  };
+
+  // DELETE
+  public shared (msg) func deleteAnnouncement(announcementId : Core.AnnouncementId) : async ApiResponse<Text> {
+    AppAnnouncementService.deleteAnnouncement(announcements, msg.caller, announcementId);
+  };
+
+  //  ===============================================================
+  // Announcement Interactions ======================================
+  //  ===============================================================
+  public shared (msg) func likeByAnnouncementId(announcementId : Core.AnnouncementId) : async ApiResponse<AppAnnouncementInteractionType> {
+    AppAnnouncementService.likeByAnnouncementId(announcements, annInteractions, announcementId, msg.caller);
+  };
+
+  public shared (msg) func dislikeByAnnouncementId(announcementId : Core.AnnouncementId) : async ApiResponse<AppAnnouncementInteractionType> {
+    AppAnnouncementService.dislikeByAnnouncementId(announcements, annInteractions, announcementId, msg.caller);
+  };
+
+  public shared (msg) func unLikeDislikeByAnnouncementId(announcementId : Core.AnnouncementId) : async ApiResponse<AppAnnouncementInteractionType> {
+    AppAnnouncementService.unLikeDislikeByAnnouncementId(announcements, annInteractions, announcementId, msg.caller);
+  };
+
+  public shared (msg) func commentByAnnouncementId(announcementId : Core.AnnouncementId, comment : Text) : async ApiResponse<AppAnnouncementInteractionType> {
+    AppAnnouncementService.commentByAnnouncementId(announcements, annInteractions, announcementId, msg.caller, comment);
   };
 };

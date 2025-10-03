@@ -1,7 +1,7 @@
 import PeridotUser "canister:peridot_user";
 
 import AppTypes "../types/AppTypes";
-import Core "../../core/Core";
+import Core "../../_core_/Core";
 
 import Time "mo:base/Time";
 import Iter "mo:base/Iter";

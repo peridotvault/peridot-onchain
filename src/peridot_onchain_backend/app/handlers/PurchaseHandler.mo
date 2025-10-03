@@ -1,4 +1,4 @@
-import Core "./../../core/Core";
+import Core "./../../_core_/Core";
 import PurchaseTypes "../types/PurchaseTypes";
 
 module PurchaseHandlerModule {

@@ -4,7 +4,7 @@ import DeveloperTypes "./types/DeveloperTypes";
 
 import UserService "services/UserService";
 
-import Core "./../core/Core";
+import Core "./../_core_/Core";
 
 import HashMap "mo:base/HashMap";
 import Text "mo:base/Text";

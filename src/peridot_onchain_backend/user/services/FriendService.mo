@@ -1,7 +1,7 @@
 import Principal "mo:base/Principal";
 import Time "mo:base/Time";
 import Buffer "mo:base/Buffer";
-import Core "../../core/Core";
+import Core "../../_core_/Core";
 import FriendTypes "../types/FriendTypes";
 
 module {

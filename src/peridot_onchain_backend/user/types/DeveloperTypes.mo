@@ -1,6 +1,6 @@
 import Text "mo:base/Text";
 import HashMap "mo:base/HashMap";
-import Core "./../../core/Core";
+import Core "./../../_core_/Core";
 
 module {
   public type FollowsHashMap = HashMap.HashMap<Text, DeveloperFollow>;

@@ -1,11 +1,11 @@
-import Core "../../core/Core";
+import Core "../../_core_/Core";
 import AppTypes "../types/AppTypes";
 import Principal "mo:base/Principal";
 import Time "mo:base/Time";
 import Array "mo:base/Array";
 import PurchaseTypes "../types/PurchaseTypes";
 import PurchaseHandler "../handlers/PurchaseHandler";
-import TokenLedger "./../../shared/TokenLedger";
+import TokenLedger "./../../_core_/shared/TokenLedger";
 
 module PurchaseServiceModule {
   type ApiResponse<T> = Core.ApiResponse<T>;

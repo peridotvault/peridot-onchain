@@ -1,5 +1,5 @@
 import UserTypes "../types/UserTypes";
-import Core "../../core/Core";
+import Core "../../_core_/Core";
 import Time "mo:base/Time";
 import Buffer "mo:base/Buffer";
 import Text "mo:base/Text";

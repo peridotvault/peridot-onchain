@@ -1,4 +1,4 @@
-import Core "./../../core/Core";
+import Core "./../../_core_/Core";
 import AppTypes "../types/AppTypes";
 import AppAnnouncementTypes "../types/AppAnnouncementTypes";
 import Nat "mo:base/Nat";

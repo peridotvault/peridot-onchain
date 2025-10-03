@@ -1,5 +1,5 @@
 import HashMap "mo:base/HashMap";
-import Core "./../../core/Core";
+import Core "./../../_core_/Core";
 
 module PurchaseTypesModule {
 

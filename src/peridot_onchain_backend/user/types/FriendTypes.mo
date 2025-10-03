@@ -1,5 +1,6 @@
-import Core "../../core/Core";
+import Core "../../_core_/Core";
 import HashMap "mo:base/HashMap";
+
 module {
 
   public type FriendsHashMap = HashMap.HashMap<Text, Friend>;
