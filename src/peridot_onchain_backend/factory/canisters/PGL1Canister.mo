@@ -9,10 +9,23 @@ import Hash "mo:base/Hash";
 
 import T "../types/PGL1Types";
 
-// Regular actor (not actor class) - this will be deployed once
-shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) = this {
+/*
+  - ✅ list of controller(Registry and Hub)
+  - ✅ total minting (total buyer)
+  - previews (in metadata)
+  - ✅ item address principals (NFT Smart Contract)
+  - game_category (in metadata)
+  - game_tag (in metadata)
+  - ✅ License User (For User Access)
+  - ✅ created At
+  - ✅ minting (only minting if user don't have Game)
+  - ✅ burn (only burn if user have Game)
+  - ✅ distribution game manifest build (web, desktop, mobile, etc)
+*/
+
+shared ({ caller }) persistent actor class PGL1Canister(initMeta : ?T.PGLContractMeta) = this {
   // ------------ Aliases ------------
-  type Meta = T.PGLContractMeta;
+  type ContractMeta = T.PGLContractMeta;
   type License = T.License;
   type Result<Ok, Err> = T.Result<Ok, Err>;
   type Owner = T.Owner;
@@ -20,28 +33,39 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
   type MD = T.Metadata;
   type V = T.Value;
   type Distribution = T.Distribution;
+  type EventKind = T.EventKind;
+  type Event = T.Event;
 
-  type EventKind = {
-    #Mint;
-    #Burn;
-    #Revoke;
-    #SetPlatform;
-    #SetGovernance;
-    #UpdateMeta;
+  // ===== Controllers (internal logical roles) =====
+  var _owner : Principal = caller; // super-admin (installer)
+  var registry_principal : ?Principal = ?caller;
+  var hub_principal : ?Principal = null;
+  var developer_principal : ?Principal = null;
+
+  private func isOwner(p : Principal) : Bool { Principal.equal(p, _owner) };
+  private func isRegistry(p : Principal) : Bool {
+    switch (registry_principal) {
+      case (null) false;
+      case (?x) Principal.equal(p, x);
+    };
+  };
+  private func isHub(p : Principal) : Bool {
+    switch (hub_principal) {
+      case (null) false;
+      case (?x) Principal.equal(p, x);
+    };
+  };
+  private func isDev(p : Principal) : Bool {
+    switch (developer_principal) {
+      case (null) false;
+      case (?x) Principal.equal(p, x);
+    };
   };
 
-  type Event = {
-    idx : Nat;
-    time : T.Timestamp;
-    kind : EventKind;
-    the_actor : Principal;
-    note : ?Text;
-    owner : ?Owner;
-    lic : ?LicenseId;
-  };
-
-  // SNAPSHOTS ======================================================
-  private var view : Meta = switch (initMeta) {
+  // =====================================================================
+  // SNAPSHOTS ===========================================================
+  // =====================================================================
+  private var view : ContractMeta = switch (initMeta) {
     case (null) {
       {
         pgl1_game_id = "com.peridotvault.vaultbreakers";
@@ -59,35 +83,30 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
     case (?meta) meta;
   };
 
-  // STATE ==========================================================
-  private var platform_principal : ?Principal = ?caller;
-
-  private func isPlatform(p : Principal) : Bool = switch (platform_principal) {
-    case (null) false;
-    case (?plat) Principal.equal(p, plat);
-  };
+  // =====================================================================
+  // STATE ===============================================================
+  // =====================================================================
 
   // ===== License ledger (per-game) =====
-  private var licenseOf_owner_entries : [(Owner, LicenseId)] = [];
-  private var licenseById_entries : [(LicenseId, License)] = [];
+  var licenseOf_owner_entries : [(Owner, LicenseId)] = [];
+  var licenseById_entries : [(LicenseId, License)] = [];
 
   private transient let licenseIdHash = func(id : LicenseId) : Hash.Hash {
     Text.hash(Nat.toText(id));
   };
-
   private transient var licenseOf_owner = HashMap.HashMap<Owner, LicenseId>(503, Principal.equal, Principal.hash);
   private transient var licenseById = HashMap.HashMap<LicenseId, License>(503, Nat.equal, licenseIdHash);
 
   // Daftar owner (untuk pagination); burn tidak menghapus dari list, akan difilter saat query
-  private var owners_index : [Owner] = [];
+  var owners_index : [Owner] = [];
 
   // Counter id dan supply
-  private var next_id : LicenseId = 0;
-  private var total_supply : Nat = 0;
+  var next_id : LicenseId = 0;
+  var total_supply : Nat = 0;
 
   // ===== Events (sederhana) =====
-  private var events : [Event] = [];
-  private var next_e : Nat = 0;
+  var events : [Event] = [];
+  var next_e : Nat = 0;
 
   private func now() : T.Timestamp = Time.now();
 
@@ -102,14 +121,15 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
       lic;
     };
     next_e += 1;
-    let buf = Buffer.Buffer<Event>(events.size() + 1);
-    for (x in events.vals()) { buf.add(x) };
-    buf.add(e);
-    events := Buffer.toArray(buf);
+
+    events := Array.append(events, [e]);
   };
 
-  // SYSTEM =========================================================
+  // =====================================================================
+  // SYSTEM ==============================================================
+  // =====================================================================
   system func preupgrade() {
+    // serialize hashmaps
     licenseOf_owner_entries := [];
     for ((k, v) in licenseOf_owner.entries()) {
       licenseOf_owner_entries := Array.append(licenseOf_owner_entries, [(k, v)]);
@@ -122,45 +142,53 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
   };
 
   system func postupgrade() {
-    licenseOf_owner := HashMap.fromIter<Owner, LicenseId>(
-      licenseOf_owner_entries.vals(),
-      503,
-      Principal.equal,
-      Principal.hash,
-    );
+    licenseOf_owner := HashMap.fromIter<Owner, LicenseId>(licenseOf_owner_entries.vals(), 503, Principal.equal, Principal.hash);
     licenseOf_owner_entries := [];
 
-    licenseById := HashMap.fromIter<LicenseId, License>(
-      licenseById_entries.vals(),
-      503,
-      Nat.equal,
-      licenseIdHash,
-    );
+    licenseById := HashMap.fromIter<LicenseId, License>(licenseById_entries.vals(), 503, Nat.equal, licenseIdHash);
     licenseById_entries := [];
   };
 
-  // ===== Admin: set principals =====
-  public shared (msg) func pgl1_set_platform(p : Principal) : async Bool {
-    platform_principal := ?p;
-    emit(#SetPlatform, msg.caller, ?("platform=" # Principal.toText(p)), null, null);
+  // =====================================================================
+  // Controllers =========================================================
+  // =====================================================================
+  public shared (msg) func set_controllers(args : T.Controllers) : async Bool {
+    // Only owner or current registry may rotate controllers
+    assert (isOwner(msg.caller) or isRegistry(msg.caller) or isHub(msg.caller));
+    registry_principal := args.registry;
+    hub_principal := args.hub;
+    developer_principal := args.developer;
+    emit(
+      #SetControllers,
+      msg.caller,
+      ?(
+        "registry=" # (switch (args.registry) { case (null) "-"; case (?r) Principal.toText(r) })
+        # "; hub=" # (switch (args.hub) { case (null) "-"; case (?h) Principal.toText(h) })
+        # "; dev=" # (switch (args.developer) { case (null) "-"; case (?d) Principal.toText(d) })
+      ),
+      null,
+      null,
+    );
     true;
   };
 
+  public query func get_controllers() : async T.Controllers {
+    {
+      registry = registry_principal;
+      hub = hub_principal;
+      developer = developer_principal;
+    };
+  };
+
   // ===== Admin: bulk update metadata =====
-  public shared (msg) func pgl1_admin_update(
-    args : {
-      game_id : ?Text;
-      name : ?Text;
-      description : ?Text;
-      cover_image : ??Text;
-      price : ??Nat;
-      required_age : ??Nat;
-      metadata : ??MD;
-      banner_image : ??Text;
-      website : ??Text;
-    }
+  public shared ({ caller }) func pgl1_update_meta(
+    args : T.PGLUpdateMeta
   ) : async Bool {
-    assert (isPlatform(msg.caller));
+    let caller_is_registry = isRegistry(caller);
+    let caller_is_dev = isDev(caller);
+    let caller_is_hub = isHub(caller);
+
+    assert (caller_is_registry or caller_is_dev or caller_is_hub);
 
     var newView = view;
 
@@ -209,8 +237,13 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
       case (?v) { newView := { newView with pgl1_website = v } };
     };
 
+    switch (args.distribution) {
+      case (null) {};
+      case (?v) { newView := { newView with pgl1_distribution = v } };
+    };
+
     view := newView;
-    emit(#UpdateMeta, msg.caller, null, null, null);
+    emit(#UpdateMeta, caller, null, null, null);
     true;
   };
 
@@ -220,10 +253,10 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
 
   // GET ======
   public query func pgl1_game_id() : async Text { view.pgl1_game_id };
-  public query func pgl1_cover_image() : async ?Text { view.pgl1_cover_image };
   public query func pgl1_name() : async Text { view.pgl1_name };
   public query func pgl1_description() : async Text { view.pgl1_description };
   public query func pgl1_price() : async ?Nat { view.pgl1_price };
+  public query func pgl1_cover_image() : async ?Text { view.pgl1_cover_image };
   public query func pgl1_required_age() : async ?Nat { view.pgl1_required_age };
   public query func pgl1_banner_image() : async ?Text { view.pgl1_banner_image };
   public query func pgl1_website() : async ?Text { view.pgl1_website };
@@ -235,7 +268,8 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
 
   // SET ======
   public shared (msg) func pgl1_safeMint(to : Owner, expires_at : ?T.Timestamp) : async Result<LicenseId, Text> {
-    if (not isPlatform(msg.caller)) return #err("FORBIDDEN");
+    if (not isHub(msg.caller)) return #err("FORBIDDEN");
+
     switch (licenseOf_owner.get(to)) {
       case (?existing) {
         switch (licenseById.get(existing)) {
@@ -268,7 +302,6 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
   };
 
   public shared (msg) func pgl1_safeBurn(of : Owner, reason : ?Text) : async Result<(), Text> {
-    if (not (isPlatform(msg.caller))) return #err("FORBIDDEN");
     switch (licenseOf_owner.get(of)) {
       case (null) { #err("NOT_OWNED") };
       case (?id) {
@@ -291,8 +324,18 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
   };
 
   public shared (msg) func pgl1_set_distribution(list : [Distribution]) : async Bool {
-    assert (isPlatform(msg.caller));
+    assert (isRegistry(msg.caller) or isHub(msg.caller));
     view := { view with pgl1_distribution = ?list };
+    true;
+  };
+
+  public shared (msg) func pgl1_add_distribution(item : Distribution) : async Bool {
+    assert (isRegistry(msg.caller) or isHub(msg.caller));
+    let cur : [Distribution] = switch (view.pgl1_distribution) {
+      case (null) [];
+      case (?d) d;
+    };
+    view := { view with pgl1_distribution = ?Array.append(cur, [item]) };
     true;
   };
 
@@ -340,16 +383,6 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
     };
   };
 
-  public shared (msg) func pgl1_add_distribution(item : Distribution) : async Bool {
-    assert (isPlatform(msg.caller));
-    let cur : [Distribution] = switch (view.pgl1_distribution) {
-      case (null) [];
-      case (?d) d;
-    };
-    view := { view with pgl1_distribution = ?Array.append(cur, [item]) };
-    true;
-  };
-
   // ===== Events (audit) =====
   public query func events_len() : async Nat { events.size() };
   public query func get_events(start : Nat, limit : Nat) : async [Event] {
@@ -376,9 +409,53 @@ shared ({ caller }) persistent actor class PGL1(initMeta : ?T.PGLContractMeta) =
     view := { view with pgl1_metadata = ?newMeta };
   };
 
+  private func textIn(xs : [Text], x : Text) : Bool {
+    label s for (t in xs.vals()) { if (t == x) return true };
+    false;
+  };
+
+  private func md_remove_many(keys : [Text]) {
+    if (keys.size() == 0) return;
+    let cur = md_cur();
+    if (cur.size() == 0) return;
+    let buf = Buffer.Buffer<(Text, V)>(cur.size());
+    for (kv in cur.vals()) { if (not textIn(keys, kv.0)) { buf.add(kv) } };
+    let arr = Buffer.toArray(buf);
+    view := { view with pgl1_metadata = if (arr.size() == 0) null else ?arr };
+  };
+
+  private func md_upsert_many(kvs : [(Text, V)]) {
+    // Use md_set to preserve replace semantics & limits
+    for ((k, v) in kvs.vals()) { md_set(k, v) };
+  };
+
   public shared (msg) func pgl1_set_item_collections(items : [V]) : async Bool {
-    assert (isPlatform(msg.caller));
+    assert (isRegistry(msg.caller) or isHub(msg.caller));
     md_set("item_collections", #array items);
+    true;
+  };
+
+  public shared (msg) func pgl1_metadata_upsert(kvs : [(Text, V)]) : async Bool {
+    assert (isRegistry(msg.caller) or isHub(msg.caller));
+    if (kvs.size() == 0) return true;
+    md_upsert_many(kvs);
+    emit(#UpdateMeta, msg.caller, ?("md:upsert=" # Nat.toText(kvs.size())), null, null);
+    true;
+  };
+
+  public shared (msg) func pgl1_metadata_remove(keys : [Text]) : async Bool {
+    assert (isRegistry(msg.caller) or isHub(msg.caller));
+    if (keys.size() == 0) return true;
+    md_remove_many(keys);
+    emit(#UpdateMeta, msg.caller, ?("md:remove=" # Nat.toText(keys.size())), null, null);
+    true;
+  };
+
+  public shared (msg) func pgl1_metadata_update(args : { set : [(Text, V)]; remove : [Text] }) : async Bool {
+    assert (isRegistry(msg.caller) or isHub(msg.caller));
+    if (args.remove.size() > 0) { md_remove_many(args.remove) };
+    if (args.set.size() > 0) { md_upsert_many(args.set) };
+    emit(#UpdateMeta, msg.caller, ?("md:update set=" # Nat.toText(args.set.size()) # ", rm=" # Nat.toText(args.remove.size())), null, null);
     true;
   };
 };

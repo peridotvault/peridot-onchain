@@ -1,3 +1,6 @@
+import PeridotRegistry "canister:peridot_registry";
+import PeridotApp "canister:peridot_app";
+
 import Principal "mo:base/Principal";
 import Array "mo:base/Array";
 import Cycles "mo:base/ExperimentalCycles";
@@ -5,10 +8,17 @@ import Debug "mo:base/Debug";
 import Error "mo:base/Error";
 
 import T "types/PGL1Types";
-import PGL1 "canisters/PGL1";
+import PGL1 "canisters/PGL1Canister";
+
+/*
+    - update controller & admin
+*/
 
 // ===== Factory Actor - MUST BE LAST =====
-shared ({ caller = owner }) persistent actor class Factory(platform_default : ?Principal) = this {
+shared ({ caller = owner }) persistent actor class PeridotFactory(
+  _registry : ?Principal,
+  _hub : ?Principal,
+) = this {
   // ===== IC Management Canister =====
   type CanisterSettings = {
     controllers : ?[Principal];
@@ -26,29 +36,49 @@ shared ({ caller = owner }) persistent actor class Factory(platform_default : ?P
     update_settings : (UpdateSettingsArgs) -> async ();
   };
 
-  let MGMT : Management = actor ("aaaaa-aa");
-
-  // PGL1 Interface
-  type PGL1Interface = actor {
-    pgl1_set_platform : (Principal) -> async Bool;
-    pgl1_set_distribution : ([T.Distribution]) -> async Bool;
+  type Controllers = {
+    registry : ?Principal;
+    hub : ?Principal;
   };
 
-  private var _platform : ?Principal = platform_default;
+  let MGMT : Management = actor ("aaaaa-aa");
+
+  private var controllers : Controllers = {
+    registry = ?Principal.fromActor(PeridotRegistry);
+    hub = ?Principal.fromActor(PeridotApp);
+  };
+
+  private func isHaveAuthority(p : Principal) : Bool {
+    let isOwner = Principal.equal(p, owner);
+
+    let isRegistry = switch (controllers.registry) {
+      case (?reg) Principal.equal(p, reg);
+      case null false;
+    };
+
+    let isHub = switch (controllers.hub) {
+      case (?hb) Principal.equal(p, hb);
+      case null false;
+    };
+
+    // ekspresi terakhir mengembalikan Bool (tidak pakai ';')
+    isOwner or isRegistry or isHub;
+  };
+  // private var controllers : Controllers = { registry = registry; hub = hub };
   private var _defaultCycles : Nat = 2_000_000_000_000; // 2T cycles
   private var _createdPGL1s : [(Principal, T.PGLContractMeta)] = [];
 
   // ===== Configuration =====
-  public shared ({ caller }) func set_platform(p : Principal) : async Bool {
-    assert (caller == owner);
-    _platform := ?p;
+  public shared ({ caller }) func set_controllers(newControllers : Controllers) : async Bool {
+    assert (isHaveAuthority(caller));
+    controllers := newControllers;
     true;
   };
 
-  public query func get_platform() : async ?Principal { _platform };
+  public query func get_controllers() : async Controllers { controllers };
 
   public shared ({ caller }) func set_default_cycles(n : Nat) : async Bool {
-    assert (caller == owner);
+    assert (isHaveAuthority(caller));
     _defaultCycles := n;
     true;
   };
@@ -59,32 +89,35 @@ shared ({ caller = owner }) persistent actor class Factory(platform_default : ?P
   public shared ({ caller }) func createPGL1(
     args : {
       meta : T.PGLContractMeta;
-      platform : ?Principal;
       controllers_extra : ?[Principal];
-      cycles : ?Nat;
     }
   ) : async Principal {
+    assert (isHaveAuthority(caller));
 
-    // Determine platform
-    let platform : Principal = switch (args.platform, _platform) {
-      case (?p, _) p;
-      case (null, ?p) p;
-      case (null, null) Debug.trap("Factory: platform principal not set");
+    // Set Controllers for PGL Standard
+    let (regP, hubP) : (Principal, Principal) = switch (controllers.registry, controllers.hub) {
+      case (null, null) Debug.trap("Factory: controllers principal not set");
+      case (null, ?_h) Debug.trap("Factory: registry principal not set");
+      case (?_r, null) Debug.trap("Factory: hub principal not set");
+      case (?r, ?h) (r, h); // <- r & h bertipe Principal (bukan ?Principal)
+    };
+
+    let pgl1_controllers : T.Controllers = {
+      registry = ?regP;
+      hub = ?hubP;
+      developer = ?caller;
     };
 
     // Determine cycles
-    let cycles_amount = switch (args.cycles) {
-      case (null) _defaultCycles;
-      case (?n) n;
-    };
+    let cycles_amount = _defaultCycles;
 
     // 1) Create PGL1 canister with cycles
     Cycles.add(cycles_amount);
-    let pgl1_actor = await PGL1.PGL1(?args.meta);
+    let pgl1_actor = await PGL1.PGL1Canister(?args.meta);
     let canister_id = Principal.fromActor(pgl1_actor);
 
     // 2) Update controllers
-    let baseCtrls : [Principal] = [owner, Principal.fromActor(this)];
+    let baseCtrls : [Principal] = [Principal.fromActor(this), regP, hubP, caller];
     let ctrls = switch (args.controllers_extra) {
       case (null) baseCtrls;
       case (?xs) Array.append(baseCtrls, xs);
@@ -105,24 +138,12 @@ shared ({ caller = owner }) persistent actor class Factory(platform_default : ?P
     };
 
     // 3) Initialize PGL1
-    let pgl1 : PGL1Interface = pgl1_actor;
+    let pgl1 : PGL1.PGL1Canister = pgl1_actor;
 
     try {
-      ignore await pgl1.pgl1_set_platform(platform);
+      ignore await pgl1.set_controllers(pgl1_controllers);
     } catch (e) {
-      Debug.trap("Failed to set platform: " # Error.message(e));
-    };
-
-    // 4) Set distribution if provided
-    switch (args.meta.pgl1_distribution) {
-      case (null) {};
-      case (?list) {
-        try {
-          ignore await pgl1.pgl1_set_distribution(list);
-        } catch (e) {
-          Debug.trap("Failed to set distribution: " # Error.message(e));
-        };
-      };
+      Debug.trap("Failed to set registry: " # Error.message(e));
     };
 
     // 5) Track created canister
@@ -144,15 +165,18 @@ shared ({ caller = owner }) persistent actor class Factory(platform_default : ?P
   public shared func get_pgl1_info(canister_id : Principal) : async {
     game_id : Text;
     name : Text;
+    controllers : T.Controllers;
   } {
     let pgl1 : actor {
       pgl1_game_id : () -> async Text;
       pgl1_name : () -> async Text;
+      get_controllers : () -> async T.Controllers;
     } = actor (Principal.toText(canister_id));
 
     {
       game_id = await pgl1.pgl1_game_id();
       name = await pgl1.pgl1_name();
+      controllers = await pgl1.get_controllers();
     };
   };
 };

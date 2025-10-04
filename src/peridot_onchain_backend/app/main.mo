@@ -13,6 +13,13 @@ import Principal "mo:base/Principal";
 import AppAnnouncementTypes "types/AppAnnouncementTypes";
 import AppAnnouncementService "services/AppAnnouncementService";
 
+/*
+
+  Release
+    - get_release_manifest(ref)
+    - get_release_version(ref)
+*/
+
 persistent actor PeridotApp {
   // TYPES ==========================================================
   type AppType = AppTypes.App;

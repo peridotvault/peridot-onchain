@@ -19,6 +19,10 @@ module {
   public type TagGroup = Text;
   public type Tag = Text;
 
+  // new type
+  public type GameId = Text; // contoh: "com.peridotvault.vaultbreakers"
+  public type Developer = Principal;
+
   // Status =========================
   public type AppStatus = {
     #publish;

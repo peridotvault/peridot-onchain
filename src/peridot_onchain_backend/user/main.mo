@@ -120,17 +120,6 @@ persistent actor PeridotUser {
     await DeveloperService.createDeveloperProfile(users, msg.caller, website, bio, Core.TokenLedgerCanister, spenderPrincipal, priceUpgradeToDeveloperAccount, merchant);
   };
 
-  // public shared (msg) func createAnnouncement(coverImage : Text, headline : Text, content : Text) : async ApiResponse<DeveloperTypes.Announcement> {
-  //   DeveloperService.createAnnouncement(users, announcements, msg.caller, coverImage, headline, content);
-  // };
-
-  // public shared (msg) func createAnnouncementInteraction(
-  //   announcementId : DeveloperTypes.AnnouncementId,
-  //   interactionType : DeveloperTypes.InteractionType,
-  // ) : async ApiResponse<DeveloperTypes.AnnouncementInteraction> {
-  //   DeveloperService.createAnnouncementInteraction(announcements, interactions, msg.caller, announcementId, interactionType);
-  // };
-
   // get
   public shared (msg) func getAmIDeveloper() : async Bool {
     DeveloperService.getAmIDeveloper(users, msg.caller);
@@ -139,14 +128,6 @@ persistent actor PeridotUser {
   public shared query func getDeveloperProfile(principalId : Principal) : async ApiResponse<DeveloperType> {
     DeveloperService.getDeveloperProfile(users, principalId);
   };
-
-  // public shared query func getAnnouncement(announcementId : DeveloperTypes.AnnouncementId) : async ApiResponse<DeveloperTypes.Announcement> {
-  //   DeveloperService.getAnnouncement(announcements, announcementId);
-  // };
-
-  // public shared query func getDeveloperAnnouncements(developerPrincipal : Principal) : async ApiResponse<[DeveloperTypes.Announcement]> {
-  //   DeveloperService.getDeveloperAnnouncements(users, announcements, developerPrincipal);
-  // };
 
   public shared (msg) func updateFollowDeveloper(developerPrincipal : Principal) : async ApiResponse<DeveloperTypes.DeveloperFollow> {
     DeveloperService.updateFollowDeveloper(users, follows, msg.caller, developerPrincipal);
@@ -157,8 +138,5 @@ persistent actor PeridotUser {
   };
 
   // delete
-  // public shared (msg) func deleteAnnouncementInteraction(announcementId : DeveloperTypes.AnnouncementId) : async ApiResponse<()> {
-  //   DeveloperService.deleteAnnouncementInteraction(announcements, interactions, msg.caller, announcementId);
-  // };
 
 };
