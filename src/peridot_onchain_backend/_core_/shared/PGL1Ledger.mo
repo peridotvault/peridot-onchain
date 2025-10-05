@@ -23,7 +23,7 @@ import T "../types/PGL1Types";
   - ✅ distribution game manifest build (web, desktop, mobile, etc)
 */
 
-shared ({ caller }) persistent actor class PGL1Canister(initMeta : ?T.PGLContractMeta) = this {
+shared ({ caller }) persistent actor class PGL1Ledger(initMeta : ?T.PGLContractMeta) = this {
   // ------------ Aliases ------------
   type ContractMeta = T.PGLContractMeta;
   type License = T.License;
@@ -264,6 +264,9 @@ shared ({ caller }) persistent actor class PGL1Canister(initMeta : ?T.PGLContrac
   public query func pgl1_total_supply() : async Nat { total_supply };
   public query func pgl1_distribution() : async ?[Distribution] {
     view.pgl1_distribution;
+  };
+  public query func pgl1_game_metadata() : async ContractMeta {
+    view;
   };
 
   // SET ======

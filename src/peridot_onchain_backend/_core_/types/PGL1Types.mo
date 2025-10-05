@@ -122,38 +122,38 @@ module PGL1Types {
 
   public type Result<Ok, Err> = { #ok : Ok; #err : Err };
 
-  // public type Pgl1Interface = actor {
-  //   // admin
-  //   set_controllers : (args : Controllers) -> async Bool;
-  //   get_controllers : () -> async Controllers;
-  //   pgl1_update_metadata : (args : PGLUpdateMeta) -> async Bool;
+  public type Pgl1Interface = actor {
+    // admin
+    set_controllers : (args : Controllers) -> async Bool;
+    get_controllers : () -> async Controllers;
+    pgl1_update_metadata : (args : PGLUpdateMeta) -> async Bool;
 
-  //   // get
-  //   pgl1_game_id : query () -> async Text;
-  //   pgl1_name : query () -> async Text;
-  //   pgl1_description : query () -> async Text;
-  //   pgl1_price : query () -> async ?Nat;
-  //   pgl1_cover_image : query () -> async ?Text;
-  //   pgl1_required_age : query () -> async ?Nat;
-  //   pgl1_banner_image : query () -> async ?Text;
-  //   pgl1_website : query () -> async ?Text;
-  //   pgl1_metadata : query () -> async ?Metadata;
-  //   pgl1_total_supply : query () -> async Nat;
-  //   pgl1_distribution : query () -> async ?[Distribution];
+    // get
+    pgl1_game_id : query () -> async Text;
+    pgl1_name : query () -> async Text;
+    pgl1_description : query () -> async Text;
+    pgl1_price : query () -> async ?Nat;
+    pgl1_cover_image : query () -> async ?Text;
+    pgl1_required_age : query () -> async ?Nat;
+    pgl1_banner_image : query () -> async ?Text;
+    pgl1_website : query () -> async ?Text;
+    pgl1_metadata : query () -> async ?Metadata;
+    pgl1_total_supply : query () -> async Nat;
+    pgl1_distribution : query () -> async ?[Distribution];
 
-  //   // set
-  //   pgl1_safeMint : (to : Owner, expires_at : ?Timestamp) -> async Result<LicenseId, Text>;
-  //   pgl1_safeBurn : (of : Owner, reason : ?Text) -> async Result<(), Text>;
-  //   pgl1_set_distribution : (list : [Distribution]) -> async Bool;
-  //   pgl1_add_distribution : (item : Distribution) -> async Bool;
+    // set
+    pgl1_safeMint : (to : Owner, expires_at : ?Timestamp) -> async Result<LicenseId, Text>;
+    pgl1_safeBurn : (of : Owner, reason : ?Text) -> async Result<(), Text>;
+    pgl1_set_distribution : (list : [Distribution]) -> async Bool;
+    pgl1_add_distribution : (item : Distribution) -> async Bool;
 
-  //   verify_license : query (owner : Owner) -> async Bool;
-  //   list_owners : (start : Nat, limit : Nat) -> async [Owner];
-  //   licenses_of_owner : query (owner : Owner) -> async [License];
+    verify_license : query (owner : Owner) -> async Bool;
+    list_owners : (start : Nat, limit : Nat) -> async [Owner];
+    licenses_of_owner : query (owner : Owner) -> async [License];
 
-  //   events_len : query () -> async Nat;
-  //   get_events : query (start : Nat, limit : Nat) -> async [Event];
+    events_len : query () -> async Nat;
+    get_events : query (start : Nat, limit : Nat) -> async [Event];
 
-  //   pgl1_set_item_collections : (items : [Value]) -> async Bool;
-  // };
+    pgl1_set_item_collections : (items : [Value]) -> async Bool;
+  };
 };

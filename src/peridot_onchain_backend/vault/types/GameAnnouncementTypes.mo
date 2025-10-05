@@ -1,17 +1,17 @@
 import Core "./../../_core_/Core";
 import HashMap "mo:base/HashMap";
 
-module AppAnnouncementTypesModule {
+module GameAnnouncementTypesModule {
 
   public type AnnUserKey = { annId : Core.AnnouncementId; userId : Core.UserId };
 
-  public type AppAnnouncementHashMap = HashMap.HashMap<Core.AnnouncementId, AppAnnouncement>;
-  public type AppAnnouncementInteractionHashMap = HashMap.HashMap<AnnUserKey, AppAnnouncementInteraction>;
+  public type GameAnnouncementHashMap = HashMap.HashMap<Core.AnnouncementId, GameAnnouncement>;
+  public type GameAnnouncementInteractionHashMap = HashMap.HashMap<AnnUserKey, GameAnnouncementInteraction>;
 
   // =========================
   // DTO
   // =========================
-  public type DTOAppAnnouncement = {
+  public type DTOGameAnnouncement = {
     coverImage : Text;
     headline : Text;
     content : Text;
@@ -19,11 +19,11 @@ module AppAnnouncementTypesModule {
     status : Status;
   };
   // =========================
-  // App Announcement
+  // Game Announcement
   // =========================
-  public type AppAnnouncement = {
+  public type GameAnnouncement = {
     announcementId : Core.AnnouncementId;
-    appId : Core.AppId;
+    gameId : Core.GameId;
     developerId : Core.DeveloperId;
     coverImage : Text;
     headline : Text;
@@ -34,7 +34,7 @@ module AppAnnouncementTypesModule {
     updatedAt : ?Core.Timestamp;
   };
 
-  public type AppAnnouncementInteraction = {
+  public type GameAnnouncementInteraction = {
     announcementId : Core.AnnouncementId;
     userId : Core.UserId;
     interactionType : ?InteractionType;

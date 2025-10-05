@@ -13,7 +13,7 @@ import Iter "mo:base/Iter";
 import FriendService "services/FriendService";
 import DeveloperService "services/DeveloperService";
 
-persistent actor PeridotUser {
+persistent actor PeridotDirectory {
   // TYPES ==========================================================
   type UserType = UserTypes.User;
   type FriendType = FriendTypes.Friend;
@@ -90,11 +90,6 @@ persistent actor PeridotUser {
     FriendService.createSendFriendRequest(friends, msg.caller, toUser);
   };
 
-  // update
-  public shared (msg) func updateAcceptFriendRequest(fromUser : Principal) : async ApiResponse<FriendType> {
-    FriendService.updateAcceptFriendRequest(friends, msg.caller, fromUser);
-  };
-
   // get
   public query (msg) func getFriendList() : async ApiResponse<[FriendType]> {
     FriendService.getFriendList(friends, msg.caller);
@@ -102,6 +97,11 @@ persistent actor PeridotUser {
 
   public query (msg) func getFriendRequestList() : async ApiResponse<[FriendType]> {
     FriendService.getFriendRequestList(friends, msg.caller);
+  };
+
+  // update
+  public shared (msg) func updateAcceptFriendRequest(fromUser : Principal) : async ApiResponse<FriendType> {
+    FriendService.updateAcceptFriendRequest(friends, msg.caller, fromUser);
   };
 
   // delete
@@ -113,14 +113,17 @@ persistent actor PeridotUser {
   // Developer ======================================================
   //  ===============================================================
   // create
-
   public shared (msg) func createDeveloperProfile(website : Text, bio : Text) : async ApiResponse<UserType> {
-    let spenderPrincipal = Principal.fromActor(PeridotUser);
+    let spenderPrincipal = Principal.fromActor(PeridotDirectory);
     let merchant = Principal.fromText(Core.PeridotAccount);
     await DeveloperService.createDeveloperProfile(users, msg.caller, website, bio, Core.TokenLedgerCanister, spenderPrincipal, priceUpgradeToDeveloperAccount, merchant);
   };
 
   // get
+  public query func isUserDeveloper(principalId : Principal) : async Bool {
+    DeveloperService.getAmIDeveloper(users, principalId);
+  };
+
   public shared (msg) func getAmIDeveloper() : async Bool {
     DeveloperService.getAmIDeveloper(users, msg.caller);
   };
@@ -129,6 +132,7 @@ persistent actor PeridotUser {
     DeveloperService.getDeveloperProfile(users, principalId);
   };
 
+  // update
   public shared (msg) func updateFollowDeveloper(developerPrincipal : Principal) : async ApiResponse<DeveloperTypes.DeveloperFollow> {
     DeveloperService.updateFollowDeveloper(users, follows, msg.caller, developerPrincipal);
   };

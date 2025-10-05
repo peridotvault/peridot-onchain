@@ -42,12 +42,24 @@ persistent actor PeridotRegistry {
   // ================================================================
   // Game Record ====================================================
   // ================================================================
-  public shared (msg) func register_game(createGameRecord : GRT.CreateGameRecord) : async ApiResponse<GameRecordType> {
-    await GameRecordServices.register_game(gameRecords, msg.caller, createGameRecord);
+  public shared func register_game(createGameRecord : GRT.CreateGameRecord) : async ApiResponse<GameRecordType> {
+    await GameRecordServices.register_game(gameRecords, createGameRecord);
   };
 
-  public query func getAllGameRecord(start : Nat, limit : Nat) : async ApiResponse<[GameRecordType]> {
-    GameRecordServices.getAllGameRecord(gameRecords, start, limit);
+  public query func isGameRegistered(canisterId : Principal) : async Bool {
+    GameRecordServices.isGameRegistered(gameRecords, canisterId);
+  };
+
+  public query func getGameRecordById(gameId : Core.GameId) : async ApiResponse<GameRecordType> {
+    GameRecordServices.getGameRecordById(gameRecords, gameId);
+  };
+
+  public query func getAllGameRecord() : async ApiResponse<[GameRecordType]> {
+    GameRecordServices.getAllGameRecord(gameRecords);
+  };
+
+  public query func getAllGameRecordLimit(start : Nat, limit : Nat) : async ApiResponse<[GameRecordType]> {
+    GameRecordServices.getAllGameRecordLimit(gameRecords, start, limit);
   };
 
 };

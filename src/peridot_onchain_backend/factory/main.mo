@@ -1,5 +1,5 @@
 import PeridotRegistry "canister:peridot_registry";
-import PeridotApp "canister:peridot_app";
+import PeridotVault "canister:peridot_vault";
 
 import Principal "mo:base/Principal";
 import Array "mo:base/Array";
@@ -7,8 +7,8 @@ import Cycles "mo:base/ExperimentalCycles";
 import Debug "mo:base/Debug";
 import Error "mo:base/Error";
 
-import T "types/PGL1Types";
-import PGL1 "canisters/PGL1Canister";
+import T "../_core_/types/PGL1Types";
+import PGL1 "../_core_/shared/PGL1Ledger";
 
 /*
     - update controller & admin
@@ -45,7 +45,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
 
   private var controllers : Controllers = {
     registry = ?Principal.fromActor(PeridotRegistry);
-    hub = ?Principal.fromActor(PeridotApp);
+    hub = ?Principal.fromActor(PeridotVault);
   };
 
   private func isHaveAuthority(p : Principal) : Bool {
@@ -113,7 +113,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
 
     // 1) Create PGL1 canister with cycles
     Cycles.add(cycles_amount);
-    let pgl1_actor = await PGL1.PGL1Canister(?args.meta);
+    let pgl1_actor = await PGL1.PGL1Ledger(?args.meta);
     let canister_id = Principal.fromActor(pgl1_actor);
 
     // 2) Update controllers
@@ -138,7 +138,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
     };
 
     // 3) Initialize PGL1
-    let pgl1 : PGL1.PGL1Canister = pgl1_actor;
+    let pgl1 : PGL1.PGL1Ledger = pgl1_actor;
 
     try {
       ignore await pgl1.set_controllers(pgl1_controllers);

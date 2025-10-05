@@ -1,20 +1,8 @@
 {
   "canisters": {
-    "peridot_user": {
-      "main": "src/peridot_onchain_backend/user/main.mo",
+    "peridot_directory": {
+      "main": "src/peridot_onchain_backend/directory/main.mo",
       "type": "motoko",
-      "moc": {
-        "args": [
-          "--enhanced-orthogonal-persistence"
-        ]
-      }
-    },
-    "peridot_app": {
-      "main": "src/peridot_onchain_backend/app/main.mo",
-      "type": "motoko",
-      "dependencies": [
-        "peridot_user"
-      ],
       "moc": {
         "args": [
           "--enhanced-orthogonal-persistence"
@@ -24,6 +12,22 @@
     "peridot_registry": {
       "main": "src/peridot_onchain_backend/registry/main.mo",
       "type": "motoko",
+      "dependencies": [
+        "peridot_directory"
+      ],
+      "moc": {
+        "args": [
+          "--enhanced-orthogonal-persistence"
+        ]
+      }
+    },
+    "peridot_vault": {
+      "main": "src/peridot_onchain_backend/vault/main.mo",
+      "type": "motoko",
+      "dependencies": [
+        "peridot_directory",
+        "peridot_registry"
+      ],
       "moc": {
         "args": [
           "--enhanced-orthogonal-persistence"
@@ -35,7 +39,7 @@
       "type": "motoko",
       "dependencies": [
         "peridot_registry",
-        "peridot_app"
+        "peridot_vault"
       ],
       "moc": {
         "args": [
@@ -45,8 +49,8 @@
     },
     "peridot_onchain_frontend": {
       "dependencies": [
-        "peridot_user",
-        "peridot_app"
+        "peridot_directory",
+        "peridot_vault"
       ],
       "source": [
         "src/peridot_onchain_frontend/dist"

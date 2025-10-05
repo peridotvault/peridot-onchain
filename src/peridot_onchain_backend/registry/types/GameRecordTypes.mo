@@ -15,7 +15,6 @@ module GameRecordTypes {
 
   // DTO
   public type CreateGameRecord = {
-    game_id : Core.GameId;
     canister_id : Principal;
     developer : Core.Developer;
   };

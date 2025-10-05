@@ -1,35 +1,48 @@
+import PeridotRegistry "canister:peridot_registry";
+
 import Core "../../_core_/Core";
-import AppTypes "../types/AppTypes";
 import Principal "mo:base/Principal";
 import Time "mo:base/Time";
 import Array "mo:base/Array";
 import PurchaseTypes "../types/PurchaseTypes";
-import PurchaseHandler "../handlers/PurchaseHandler";
 import TokenLedger "./../../_core_/shared/TokenLedger";
+import PGL1 "../../_core_/shared/PGL1Ledger";
 
 module PurchaseServiceModule {
   type ApiResponse<T> = Core.ApiResponse<T>;
   type PurchaseType = PurchaseTypes.Purchase;
-  type AppType = AppTypes.App;
+  type PGL1Ledger = PGL1.PGL1Ledger;
 
   // peridot account (peridot address)
   public func merchantAccount(self : Principal) : TokenLedger.Account__1 {
     { owner = self; subaccount = null };
   };
+  func asPGL1(canisterIdTxt : Text) : PGL1.PGL1Ledger {
+    actor (canisterIdTxt);
+  };
 
   //   create
-  public func buyApp(purchases : PurchaseTypes.PurchaseHashMap, apps : AppTypes.AppHashMap, appId : Core.AppId, userId : Core.UserId, tokenLedger : Text, spenderPrincipal : Core.UserId, merchantPrincipal : Principal) : async ApiResponse<PurchaseType> {
+  public func buyGame(
+    purchases : PurchaseTypes.PurchaseHashMap,
+    gameId : Core.GameId,
+    caller : Principal,
+    tokenLedger : Text,
+    spenderPrincipal : Core.UserId,
+    merchantPrincipal : Principal,
+  ) : async ApiResponse<PurchaseType> {
     let tokenLedgerService : TokenLedger.Self = actor (tokenLedger);
+    let isExist = await PeridotRegistry.getGameRecordById(gameId);
     // 1) get app
-    switch (apps.get(appId)) {
-      case (null) {
-        return #err(#NotFound("The App not found"));
+    switch (isExist) {
+      case (#err err) {
+        return #err(err);
       };
-      case (?app) {
-        let price : Nat = switch (app.price) {
+      case (#ok game) {
+        let pgl1 : PGL1Ledger = asPGL1(Principal.toText(game.canister_id));
+        let price : Nat = switch (await pgl1.pgl1_price()) {
           case (null) {
             // jika "null" artinya belum di-set / tidak untuk dijual
-            return #err(#ValidationError("App price is not set"));
+            return #err(#ValidationError("Game price is not set"));
           };
           case (?p) { p };
         };
@@ -37,28 +50,29 @@ module PurchaseServiceModule {
         switch (price <= 0) {
           case (true) {
             let newPurchase : PurchaseType = {
-              userId = userId;
-              appId = appId;
+              userId = caller;
+              gameId = gameId;
               amount = 0;
               purchasedAt = Time.now();
               txIndex = null;
               memo = null;
             };
-            let prev : [PurchaseType] = switch (purchases.get(userId)) {
+            let prev : [PurchaseType] = switch (purchases.get(caller)) {
               case (?arr) arr;
               case (null) [];
             };
-            purchases.put(userId, Array.append<PurchaseType>(prev, [newPurchase]));
+            purchases.put(caller, Array.append<PurchaseType>(prev, [newPurchase]));
             return #ok(newPurchase);
           };
           case (false) {
             // 3) idempotent: isUserAlreadyBought?
-            switch (PurchaseHandler.PurchaseHandler().isUserAlreadyBought(purchases, appId, userId)) {
-              case (#err(error)) { return #err(error) };
-              case (#ok()) {
+            let res = await pgl1.pgl1_safeMint(caller, null);
+            switch (res) {
+              case (#err err) { #err(#NotAuthorized(err)) };
+              case (#ok res) {
                 // 4) check allowance user → canister
                 let userAccount : TokenLedger.Account__1 = {
-                  owner = userId;
+                  owner = caller;
                   subaccount = null;
                 };
                 let spender : TokenLedger.Account__1 = {
@@ -92,8 +106,8 @@ module PurchaseServiceModule {
                   case (#Ok txIndex) {
                     // 6) create new purchase
                     let newPurchase : PurchaseType = {
-                      userId = userId;
-                      appId = appId;
+                      userId = caller;
+                      gameId = gameId;
                       amount = price;
                       purchasedAt = Time.now();
                       txIndex = ?txIndex;
@@ -101,13 +115,15 @@ module PurchaseServiceModule {
                     };
 
                     // 7) take old list (can be null) -> append -> put again as array
-                    let prev : [PurchaseType] = switch (purchases.get(userId)) {
+
+                    let prev : [PurchaseType] = switch (purchases.get(caller)) {
                       case (?arr) arr;
                       case (null) [];
                     };
                     let updated : [PurchaseType] = Array.append<PurchaseType>(prev, [newPurchase]);
-                    purchases.put(userId, updated);
+                    purchases.put(caller, updated);
                     return #ok(newPurchase);
+
                   };
                 };
               };

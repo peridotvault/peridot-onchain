@@ -7,7 +7,7 @@ module PurchaseTypesModule {
 
   public type Purchase = {
     userId : Core.UserId;
-    appId : Core.AppId;
+    gameId : Core.GameId;
     amount : Nat;
     purchasedAt : Core.Timestamp;
     txIndex : ?Nat;

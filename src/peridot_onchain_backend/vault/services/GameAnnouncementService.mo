@@ -1,42 +1,42 @@
+import PeridotRegistry "canister:peridot_registry";
+
 import Core "./../../_core_/Core";
-import AppTypes "../types/AppTypes";
-import AppAnnouncementTypes "../types/AppAnnouncementTypes";
+import GameAnnouncementTypes "../types/GameAnnouncementTypes";
 import Nat "mo:base/Nat";
 import Time "mo:base/Time";
 import Iter "mo:base/Iter";
 import Array "mo:base/Array";
 import Order "mo:base/Order";
+import Principal "mo:base/Principal";
 
-module AppAnnouncementServiceModule {
+module GameAnnouncementServiceModule {
   type ApiResponse<T> = Core.ApiResponse<T>;
-  type AppType = AppTypes.App;
-  type AppAnnouncementType = AppAnnouncementTypes.AppAnnouncement;
-  type AppAnnouncementInteractionType = AppAnnouncementTypes.AppAnnouncementInteraction;
+  type GameAnnouncementType = GameAnnouncementTypes.GameAnnouncement;
+  type GameAnnouncementInteractionType = GameAnnouncementTypes.GameAnnouncementInteraction;
 
   public func createAnnouncement(
-    announcements : AppAnnouncementTypes.AppAnnouncementHashMap,
-    apps : AppTypes.AppHashMap,
-    appId : Core.AppId,
-    developerId : Core.DeveloperId,
-    annInput : AppAnnouncementTypes.DTOAppAnnouncement,
+    announcements : GameAnnouncementTypes.GameAnnouncementHashMap,
+    gameId : Core.GameId,
+    caller : Principal,
+    annInput : GameAnnouncementTypes.DTOGameAnnouncement,
     announcementId : Core.AnnouncementId,
-  ) : ApiResponse<AppAnnouncementType> {
+  ) : async ApiResponse<GameAnnouncementType> {
     // 1) get app existing
-    let existingOpt = apps.get(appId);
-    switch (existingOpt) {
-      case null {
-        return #err(#NotFound("App with ID " # Nat.toText(appId) # " not found"));
+    let isExist = await PeridotRegistry.getGameRecordById(gameId);
+    switch (isExist) {
+      case (#err err) {
+        return #err(err);
       };
-      case (?app) {
+      case (#ok game) {
         // 2) otorization: hanya pemilik app yg boleh create Announcement
-        if (app.developerId != developerId) {
-          return #err(#Unauthorized("Forbidden: you are not the developer of this app"));
+        if (game.developer != caller) {
+          return #err(#Unauthorized("Forbidden: you are not the developer of this game"));
         };
 
-        let announcementNewData : AppAnnouncementType = {
+        let announcementNewData : GameAnnouncementType = {
           announcementId = announcementId;
-          appId = appId;
-          developerId = developerId;
+          gameId = gameId;
+          developerId = game.developer;
           coverImage = annInput.coverImage;
           headline = annInput.headline;
           content = annInput.content;
@@ -51,25 +51,24 @@ module AppAnnouncementServiceModule {
         return #ok(announcementNewData);
       };
     };
-
   };
 
-  public func getAllAnnouncementsByAppId(
-    announcements : AppAnnouncementTypes.AppAnnouncementHashMap,
-    appId : Core.AppId,
-  ) : ApiResponse<[AppAnnouncementType]> {
+  public func getAllAnnouncementsByGameId(
+    announcements : GameAnnouncementTypes.GameAnnouncementHashMap,
+    gameId : Core.GameId,
+  ) : ApiResponse<[GameAnnouncementType]> {
     // 1) filter by appId
     let filtered = Iter.toArray(
-      Iter.filter<AppAnnouncementType>(
+      Iter.filter<GameAnnouncementType>(
         announcements.vals(),
-        func(ann : AppAnnouncementType) : Bool { ann.appId == appId },
+        func(ann : GameAnnouncementType) : Bool { ann.gameId == gameId },
       )
     );
 
     // 2) sort: pinned desc, createdAt desc
-    let sorted = Array.sort<AppAnnouncementType>(
+    let sorted = Array.sort<GameAnnouncementType>(
       filtered,
-      func(a : AppAnnouncementType, b : AppAnnouncementType) : Order.Order {
+      func(a : GameAnnouncementType, b : GameAnnouncementType) : Order.Order {
         if (a.pinned != b.pinned) {
           // pinned true harus muncul dulu
           if (a.pinned) { #less } else { #greater };
@@ -87,9 +86,9 @@ module AppAnnouncementServiceModule {
   };
 
   public func getAnnouncementsByAnnouncementId(
-    announcements : AppAnnouncementTypes.AppAnnouncementHashMap,
+    announcements : GameAnnouncementTypes.GameAnnouncementHashMap,
     announcementId : Core.AnnouncementId,
-  ) : ApiResponse<AppAnnouncementType> {
+  ) : ApiResponse<GameAnnouncementType> {
     let existingOpt = announcements.get(announcementId);
     switch (existingOpt) {
       case (null) {
@@ -102,11 +101,11 @@ module AppAnnouncementServiceModule {
   };
 
   public func updateAnnouncement(
-    announcements : AppAnnouncementTypes.AppAnnouncementHashMap,
-    developerId : Core.DeveloperId,
-    annInput : AppAnnouncementTypes.DTOAppAnnouncement,
+    announcements : GameAnnouncementTypes.GameAnnouncementHashMap,
+    caller : Principal,
+    annInput : GameAnnouncementTypes.DTOGameAnnouncement,
     announcementId : Core.AnnouncementId,
-  ) : ApiResponse<AppAnnouncementType> {
+  ) : ApiResponse<GameAnnouncementType> {
     // 1) get app existing
     let existingOpt = announcements.get(announcementId);
     switch (existingOpt) {
@@ -115,14 +114,14 @@ module AppAnnouncementServiceModule {
       };
       case (?ann) {
         // 2) otorization: hanya pemilik app yg boleh update Announcement
-        if (ann.developerId != developerId) {
-          return #err(#Unauthorized("Forbidden: you are not the developer of this App"));
+        if (ann.developerId != caller) {
+          return #err(#Unauthorized("Forbidden: you are not the developer of this Game"));
         };
 
-        let announcementUpdateData : AppAnnouncementType = {
+        let announcementUpdateData : GameAnnouncementType = {
           announcementId = announcementId;
-          appId = ann.appId;
-          developerId = developerId;
+          gameId = ann.gameId;
+          developerId = caller;
           coverImage = annInput.coverImage;
           headline = annInput.headline;
           content = annInput.content;
@@ -141,8 +140,8 @@ module AppAnnouncementServiceModule {
   };
 
   public func deleteAnnouncement(
-    announcements : AppAnnouncementTypes.AppAnnouncementHashMap,
-    developerId : Core.DeveloperId,
+    announcements : GameAnnouncementTypes.GameAnnouncementHashMap,
+    caller : Principal,
     announcementId : Core.AnnouncementId,
   ) : ApiResponse<Text> {
     // 1) get app existing
@@ -153,8 +152,8 @@ module AppAnnouncementServiceModule {
       };
       case (?ann) {
         // 2) otorization: hanya pemilik app yg boleh delete Announcement
-        if (ann.developerId != developerId) {
-          return #err(#Unauthorized("Forbidden: you are not the developer of this App"));
+        if (ann.developerId != caller) {
+          return #err(#Unauthorized("Forbidden: you are not the developer of this Game"));
         };
 
         // 3) delete announcement
@@ -162,14 +161,13 @@ module AppAnnouncementServiceModule {
         return #ok("Delete Announcement Successfully");
       };
     };
-
   };
 
   //  ===============================================================
   // Announcement Interactions ======================================
   //  ===============================================================
   // like
-  public func likeByAnnouncementId(announcements : AppAnnouncementTypes.AppAnnouncementHashMap, annInteractions : AppAnnouncementTypes.AppAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, userId : Core.UserId) : ApiResponse<AppAnnouncementInteractionType> {
+  public func likeByAnnouncementId(announcements : GameAnnouncementTypes.GameAnnouncementHashMap, annInteractions : GameAnnouncementTypes.GameAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, caller : Principal) : ApiResponse<GameAnnouncementInteractionType> {
     // 1) get app existing
     let existingAnn = announcements.get(announcementId);
     switch (existingAnn) {
@@ -178,9 +176,9 @@ module AppAnnouncementServiceModule {
       };
       case (?ann) {
         // 2) checking interactions
-        let annUserKey : AppAnnouncementTypes.AnnUserKey = {
+        let annUserKey : GameAnnouncementTypes.AnnUserKey = {
           annId = announcementId;
-          userId = userId;
+          userId = caller;
         };
         let existingInteraction = annInteractions.get(annUserKey);
         var oldComment : ?Text = null;
@@ -192,9 +190,9 @@ module AppAnnouncementServiceModule {
             createdAt := annInt.createdAt;
           };
         };
-        let annInteractionData : AppAnnouncementInteractionType = {
+        let annInteractionData : GameAnnouncementInteractionType = {
           announcementId = announcementId;
-          userId = userId;
+          userId = caller;
           interactionType = ?#like;
           comment = oldComment;
           createdAt = createdAt;
@@ -208,7 +206,7 @@ module AppAnnouncementServiceModule {
   };
 
   // dislike
-  public func dislikeByAnnouncementId(announcements : AppAnnouncementTypes.AppAnnouncementHashMap, annInteractions : AppAnnouncementTypes.AppAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, userId : Core.UserId) : ApiResponse<AppAnnouncementInteractionType> {
+  public func dislikeByAnnouncementId(announcements : GameAnnouncementTypes.GameAnnouncementHashMap, annInteractions : GameAnnouncementTypes.GameAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, caller : Principal) : ApiResponse<GameAnnouncementInteractionType> {
     // 1) get app existing
     let existingAnn = announcements.get(announcementId);
     switch (existingAnn) {
@@ -217,9 +215,9 @@ module AppAnnouncementServiceModule {
       };
       case (?ann) {
         // 2) checking interactions
-        let annUserKey : AppAnnouncementTypes.AnnUserKey = {
+        let annUserKey : GameAnnouncementTypes.AnnUserKey = {
           annId = announcementId;
-          userId = userId;
+          userId = caller;
         };
         let existingInteraction = annInteractions.get(annUserKey);
         var oldComment : ?Text = null;
@@ -231,9 +229,9 @@ module AppAnnouncementServiceModule {
             createdAt := annInt.createdAt;
           };
         };
-        let annInteractionData : AppAnnouncementInteractionType = {
+        let annInteractionData : GameAnnouncementInteractionType = {
           announcementId = announcementId;
-          userId = userId;
+          userId = caller;
           interactionType = ?#dislike;
           comment = oldComment;
           createdAt = createdAt;
@@ -247,7 +245,7 @@ module AppAnnouncementServiceModule {
   };
 
   // unLikeDislike
-  public func unLikeDislikeByAnnouncementId(announcements : AppAnnouncementTypes.AppAnnouncementHashMap, annInteractions : AppAnnouncementTypes.AppAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, userId : Core.UserId) : ApiResponse<AppAnnouncementInteractionType> {
+  public func unLikeDislikeByAnnouncementId(announcements : GameAnnouncementTypes.GameAnnouncementHashMap, annInteractions : GameAnnouncementTypes.GameAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, caller : Principal) : ApiResponse<GameAnnouncementInteractionType> {
     // 1) get app existing
     let existingAnn = announcements.get(announcementId);
     switch (existingAnn) {
@@ -256,9 +254,9 @@ module AppAnnouncementServiceModule {
       };
       case (?ann) {
         // 2) checking interactions
-        let annUserKey : AppAnnouncementTypes.AnnUserKey = {
+        let annUserKey : GameAnnouncementTypes.AnnUserKey = {
           annId = announcementId;
-          userId = userId;
+          userId = caller;
         };
         let existingInteraction = annInteractions.get(annUserKey);
         var oldComment : ?Text = null;
@@ -270,9 +268,9 @@ module AppAnnouncementServiceModule {
             createdAt := annInt.createdAt;
           };
         };
-        let annInteractionData : AppAnnouncementInteractionType = {
+        let annInteractionData : GameAnnouncementInteractionType = {
           announcementId = announcementId;
-          userId = userId;
+          userId = caller;
           interactionType = null;
           comment = oldComment;
           createdAt = createdAt;
@@ -286,7 +284,7 @@ module AppAnnouncementServiceModule {
   };
 
   // unLikeDislike
-  public func commentByAnnouncementId(announcements : AppAnnouncementTypes.AppAnnouncementHashMap, annInteractions : AppAnnouncementTypes.AppAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, userId : Core.UserId, comment : Text) : ApiResponse<AppAnnouncementInteractionType> {
+  public func commentByAnnouncementId(announcements : GameAnnouncementTypes.GameAnnouncementHashMap, annInteractions : GameAnnouncementTypes.GameAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, caller : Principal, comment : Text) : ApiResponse<GameAnnouncementInteractionType> {
     // 1) get app existing
     let existingAnn = announcements.get(announcementId);
     switch (existingAnn) {
@@ -295,12 +293,12 @@ module AppAnnouncementServiceModule {
       };
       case (?ann) {
         // 2) checking interactions
-        let annUserKey : AppAnnouncementTypes.AnnUserKey = {
+        let annUserKey : GameAnnouncementTypes.AnnUserKey = {
           annId = announcementId;
-          userId = userId;
+          userId = caller;
         };
         let existingInteraction = annInteractions.get(annUserKey);
-        var interactionType : ?AppAnnouncementTypes.InteractionType = null;
+        var interactionType : ?GameAnnouncementTypes.InteractionType = null;
         var createdAt : Core.Timestamp = Time.now();
         switch (existingInteraction) {
           case (null) {};
@@ -309,9 +307,9 @@ module AppAnnouncementServiceModule {
             createdAt := annInt.createdAt;
           };
         };
-        let annInteractionData : AppAnnouncementInteractionType = {
+        let annInteractionData : GameAnnouncementInteractionType = {
           announcementId = announcementId;
-          userId = userId;
+          userId = caller;
           interactionType = interactionType;
           comment = ?comment;
           createdAt = createdAt;
