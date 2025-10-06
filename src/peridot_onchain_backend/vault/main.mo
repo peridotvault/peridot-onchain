@@ -1,5 +1,3 @@
-import PeridotRegistry "canister:peridot_registry";
-
 import PGL1 "../_core_/shared/PGL1Ledger";
 import PGL1Types "../_core_/types/PGL1Types";
 import GRT "../registry/types/GameRecordTypes";
@@ -7,8 +5,6 @@ import GRT "../registry/types/GameRecordTypes";
 import Core "./../_core_/Core";
 import Text "mo:base/Text";
 import Principal "mo:base/Principal";
-import Debug "mo:base/Debug";
-import Array "mo:base/Array";
 import Hash "mo:base/Hash";
 import Nat "mo:base/Nat";
 import Iter "mo:base/Iter";
@@ -17,7 +13,6 @@ import GameAnnouncementTypes "types/GameAnnouncementTypes";
 import PurchaseTypes "types/PurchaseTypes";
 import GameAnnouncementService "services/GameAnnouncementService";
 import PurchaseService "services/PurchaseService";
-import GameTypes "types/GameTypes";
 import GameService "services/GameService";
 
 /*
@@ -58,7 +53,6 @@ persistent actor PeridotVault {
   type GameAnnouncementInteractionType = GameAnnouncementTypes.GameAnnouncementInteraction;
   type PurchaseType = PurchaseTypes.Purchase;
   type AnnUserKey = GameAnnouncementTypes.AnnUserKey;
-  type OwnedGame = GameTypes.OwnedGame;
 
   // SNAPSHOTS ======================================================
   private var nextAnnouncementId : Core.AnnouncementId = 0;
@@ -101,7 +95,11 @@ persistent actor PeridotVault {
   //  ===============================================================
   // Catalog ========================================================
   //  ===============================================================
-  public shared func getGameMetadata(gameCanisterId : Text) : async PGL1Types.PGLContractMeta {
+  public shared ({ caller }) func updateGame(gameCanisterId : Text, args : PGLMeta) : async PGLMeta {
+    await GameService.updateGame(gameCanisterId, caller, args);
+  };
+
+  public shared func getGameMetadata(gameCanisterId : Text) : async PGLMeta {
     await GameService.getGameMetadata(gameCanisterId);
   };
 
@@ -118,7 +116,7 @@ persistent actor PeridotVault {
 
   };
 
-  public shared ({ caller }) func getMyGames() : async [OwnedGame] {
+  public shared ({ caller }) func getMyGames() : async [PGLMeta] {
     await GameService.getMyGames(caller);
   };
 

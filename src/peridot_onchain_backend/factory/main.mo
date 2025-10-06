@@ -56,13 +56,13 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       case null false;
     };
 
-    let isHub = switch (controllers.hub) {
+    let isVault = switch (controllers.hub) {
       case (?hb) Principal.equal(p, hb);
       case null false;
     };
 
     // ekspresi terakhir mengembalikan Bool (tidak pakai ';')
-    isOwner or isRegistry or isHub;
+    isOwner or isRegistry or isVault;
   };
   // private var controllers : Controllers = { registry = registry; hub = hub };
   private var _defaultCycles : Nat = 2_000_000_000_000; // 2T cycles

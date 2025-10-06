@@ -246,7 +246,7 @@ module GameAnnouncementServiceModule {
 
   // unLikeDislike
   public func unLikeDislikeByAnnouncementId(announcements : GameAnnouncementTypes.GameAnnouncementHashMap, annInteractions : GameAnnouncementTypes.GameAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, caller : Principal) : ApiResponse<GameAnnouncementInteractionType> {
-    // 1) get app existing
+    // 1) get ann existing
     let existingAnn = announcements.get(announcementId);
     switch (existingAnn) {
       case null {
@@ -283,7 +283,7 @@ module GameAnnouncementServiceModule {
     };
   };
 
-  // unLikeDislike
+  // commentByAnnouncementId
   public func commentByAnnouncementId(announcements : GameAnnouncementTypes.GameAnnouncementHashMap, annInteractions : GameAnnouncementTypes.GameAnnouncementInteractionHashMap, announcementId : Core.AnnouncementId, caller : Principal, comment : Text) : ApiResponse<GameAnnouncementInteractionType> {
     // 1) get app existing
     let existingAnn = announcements.get(announcementId);
