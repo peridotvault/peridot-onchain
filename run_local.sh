@@ -1,0 +1,5 @@
+dfx deploy peridot_directory
+dfx deploy peridot_registry
+dfx deploy peridot_vault
+dfx deploy peridot_factory
+dfx deploy peridot_onchain_frontend
