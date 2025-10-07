@@ -34,7 +34,6 @@ module PGL1Types {
   };
 
   public type PGLUpdateMeta = {
-    game_id : ?GameId;
     cover_image : ??Text;
     name : ?Text;
     description : ?Text;

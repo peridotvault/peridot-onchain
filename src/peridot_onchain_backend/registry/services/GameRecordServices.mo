@@ -85,4 +85,24 @@ module GameRecordService {
       case (?game) { #ok(game) };
     };
   };
+
+  public func getGameByDeveloperId(
+    gameRecords : GRT.GameRecordHashMap,
+    dev : Principal,
+    gameId : Core.GameId,
+  ) : async ApiResponse<GameRecordType> {
+    switch (gameRecords.get(gameId)) {
+      case (null) {
+        #err(#NotFound("Game with Game Id " # gameId # " not registered"));
+      };
+      case (?game) {
+        switch (game.developer == dev) {
+          case (true) { #ok(game) };
+          case (false) {
+            #err(#Unauthorized("You don't have access to get the Game Record"));
+          };
+        };
+      };
+    };
+  };
 };

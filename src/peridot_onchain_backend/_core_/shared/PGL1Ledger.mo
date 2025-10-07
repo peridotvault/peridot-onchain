@@ -68,7 +68,7 @@ shared ({ caller }) persistent actor class PGL1Ledger(initMeta : ?T.PGLContractM
   private var view : ContractMeta = switch (initMeta) {
     case (null) {
       {
-        pgl1_game_id = "com.peridotvault.vaultbreakers";
+        pgl1_game_id = "PERIDOTG";
         pgl1_cover_image = ?"https://...";
         pgl1_name = "PeridotVault Game";
         pgl1_description = "PeridotVault Description";
@@ -191,11 +191,6 @@ shared ({ caller }) persistent actor class PGL1Ledger(initMeta : ?T.PGLContractM
     assert (caller_is_registry or caller_is_dev or caller_is_hub);
 
     var newView = view;
-
-    switch (args.game_id) {
-      case (null) {};
-      case (?v) { newView := { newView with pgl1_game_id = v } };
-    };
 
     switch (args.name) {
       case (null) {};

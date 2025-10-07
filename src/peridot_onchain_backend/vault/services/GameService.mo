@@ -23,47 +23,111 @@ module GameServiceModule {
   type GameAnnouncementInteractionType = GameAnnouncementTypes.GameAnnouncementInteraction;
   type PurchaseType = PurchaseTypes.Purchase;
   type AnnUserKey = GameAnnouncementTypes.AnnUserKey;
+  type V = PGL1Types.Value;
+
+  // helpers
+  func md_get_text(mdOpt : ?[(Text, V)], key : Text) : ?Text {
+    switch (mdOpt) {
+      case null null;
+      case (?md) {
+        for ((k, v) in md.vals()) {
+          if (k == key) {
+            switch (v) {
+              case (#text t) return ?t;
+              case _ return null;
+            };
+          };
+        };
+        null;
+      };
+    };
+  };
 
   func asPGL1(canisterIdTxt : Text) : PGL1.PGL1Ledger {
     actor (canisterIdTxt);
   };
 
+  func is_published(mdOpt : ?[(Text, V)]) : Bool {
+    let statusTxt = switch (md_get_text(mdOpt, "pgl1_status")) {
+      case (?t) t;
+      case null "";
+    };
+    // kamu pakai "published" vs "draft/notPublish"
+    // normalisasi biar aman
+    let s = Text.toLowercase(statusTxt);
+    s == "published" or s == "publish";
+  };
+
   // update
   public func updateGame(
-    gameCanisterId : Text,
-    _caller : Principal, // tidak dipakai; ACL dicek di PGL1 via msg.caller (Vault/hub)
+    gameId : Text,
+    caller : Principal,
     args : PGLMeta,
-  ) : async PGLMeta {
+  ) : async ApiResponse<PGLMeta> {
     // 1) pastikan terdaftar
-    let isReg = await PeridotRegistry.isGameRegistered(Principal.fromText(gameCanisterId));
-    assert (isReg);
+    let isDev = await PeridotRegistry.getGameByDeveloperId(caller, gameId);
+    switch (isDev) {
+      case (#err err) { #err(err) };
+      case (#ok gameRecord) {
 
-    // 2) siapkan actor PGL1
-    let pgl1 : PGL1Ledger = asPGL1(gameCanisterId);
+        let isReg = await PeridotRegistry.isGameRegistered(gameRecord.canister_id);
+        assert (isReg);
 
-    // 3) bentuk patch dari PGLMeta -> PGLUpdateMeta
-    //    Catatan:
-    let patch : PGL1Types.PGLUpdateMeta = {
-      game_id = ?args.pgl1_game_id;
-      name = ?args.pgl1_name;
-      description = ?args.pgl1_description;
-      cover_image = ?args.pgl1_cover_image;
-      price = ?args.pgl1_price;
-      required_age = ?args.pgl1_required_age;
-      banner_image = ?args.pgl1_banner_image;
-      metadata = ?args.pgl1_metadata;
-      website = ?args.pgl1_website;
-      distribution = ?args.pgl1_distribution;
+        // 2) siapkan actor PGL1
+        let pgl1 : PGL1Ledger = asPGL1(Principal.toText(gameRecord.canister_id));
+
+        // 3) bentuk patch dari PGLMeta -> PGLUpdateMeta
+        //    Catatan:
+        let patch : PGL1Types.PGLUpdateMeta = {
+          name = ?args.pgl1_name;
+          description = ?args.pgl1_description;
+          cover_image = ?args.pgl1_cover_image;
+          price = ?args.pgl1_price;
+          required_age = ?args.pgl1_required_age;
+          banner_image = ?args.pgl1_banner_image;
+          metadata = ?args.pgl1_metadata;
+          website = ?args.pgl1_website;
+          distribution = ?args.pgl1_distribution;
+        };
+
+        // 4) jalankan update (ACL: PGL1 menerima registry/dev/hub; Vault harus terdaftar sbg hub atau registry)
+        ignore await pgl1.pgl1_update_meta(patch);
+
+        // 5) ambil metadata terbaru & return
+        let meta = await pgl1.pgl1_game_metadata();
+        #ok(meta);
+      };
     };
-
-    // 4) jalankan update (ACL: PGL1 menerima registry/dev/hub; Vault harus terdaftar sbg hub atau registry)
-    ignore await pgl1.pgl1_update_meta(patch);
-
-    // 5) ambil metadata terbaru & return
-    await pgl1.pgl1_game_metadata();
   };
 
   // get
+  public func getPublishedGames(start : Nat, limit : Nat) : async ApiResponse<[PGLMeta]> {
+    if (limit == 0) return #ok([]);
+    let recsResp = await PeridotRegistry.getAllGameRecord(); // atau versi paginated-mu
+    let recs = Helpers.expectOk(recsResp, "getAllGameRecord");
+
+    var taken : Nat = 0;
+    var i : Nat = 0;
+    var out : [PGLMeta] = [];
+
+    label scan for (rec in recs.vals()) {
+      // pagination lokal
+      if (i < start) { i += 1; continue scan };
+      if (taken >= limit) break scan;
+
+      let pgl1 = asPGL1(Principal.toText(rec.canister_id));
+      let meta = await pgl1.pgl1_game_metadata();
+      if (is_published(meta.pgl1_metadata)) {
+        out := Array.append(out, [meta]);
+        taken += 1;
+      };
+
+      i += 1;
+    };
+
+    #ok(out);
+  };
+
   public func getGameMetadata(gameCanisterId : Text) : async PGL1Types.PGLContractMeta {
     let isReg = await PeridotRegistry.isGameRegistered(Principal.fromText(gameCanisterId));
     assert (isReg);

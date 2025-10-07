@@ -95,8 +95,12 @@ persistent actor PeridotVault {
   //  ===============================================================
   // Catalog ========================================================
   //  ===============================================================
-  public shared ({ caller }) func updateGame(gameCanisterId : Text, args : PGLMeta) : async PGLMeta {
-    await GameService.updateGame(gameCanisterId, caller, args);
+  public shared ({ caller }) func updateGame(gameId : Core.GameId, args : PGLMeta) : async ApiResponse<PGLMeta> {
+    await GameService.updateGame(gameId, caller, args);
+  };
+
+  public shared func getPublishedGames(start : Nat, limit : Nat) : async ApiResponse<[PGLMeta]> {
+    await GameService.getPublishedGames(start, limit);
   };
 
   public shared func getGameMetadata(gameCanisterId : Text) : async PGLMeta {
@@ -113,7 +117,6 @@ persistent actor PeridotVault {
 
   public shared func getGameByDeveloperId(dev : Principal, start : Nat, limit : Nat) : async [PGLMeta] {
     await GameService.getGameByDeveloperId(dev, start, limit);
-
   };
 
   public shared ({ caller }) func getMyGames() : async [PGLMeta] {

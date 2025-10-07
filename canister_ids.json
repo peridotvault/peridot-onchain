@@ -1,8 +1,17 @@
 {
-  "peridot_ai": {},
-  "peridot_app": {},
+  "peridot_directory": {
+    "ic": "dbt4b-gqaaa-aaaap-an4oa-cai"
+  },
+  "peridot_factory": {
+    "ic": "dgs2v-liaaa-aaaap-an4oq-cai"
+  },
   "peridot_onchain_frontend": {
     "ic": "i6ssh-mqaaa-aaaap-anwaq-cai"
   },
-  "peridot_user": {}
+  "peridot_registry": {
+    "ic": "dprrj-5aaaa-aaaap-an4pa-cai"
+  },
+  "peridot_vault": {
+    "ic": "diqx5-qyaaa-aaaap-an4pq-cai"
+  }
 }

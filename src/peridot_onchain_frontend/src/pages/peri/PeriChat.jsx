@@ -1,17 +1,68 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { peridot_ai } from "declarations/peridot_ai/index.js";
 import { EyeglassesIcon } from "../../assets/icons/MainIcons";
+
+/* ---------------- utils sanitasi jawaban (JS only) ---------------- */
+function stripXmlBlocks(s) {
+    return s
+        .replace(/<think[\s\S]*?<\/think>/gi, "")
+        .replace(/<analysis[\s\S]*?<\/analysis>/gi, "");
+}
+function stripFencedBlocks(s) {
+    return s.replace(/```[\s\S]*?```/g, "");
+}
+function unquote(s) {
+    return s.replace(/^[\s"'`]+|[\s"'`]+$/g, "").trim();
+}
+function collapseWS(s) {
+    return s.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+}
+function limitSentences(s, n) {
+    const parts = s.split(/(?<=[.!?])\s+/).filter(Boolean);
+    return parts.slice(0, n).join(" ");
+}
+function extractText(raw) {
+    if (typeof raw === "string") return raw;
+    return (
+        (raw && (raw.response || raw.text || raw.message)) ||
+        (raw && raw.data && (raw.data.response || raw.data.text)) ||
+        ""
+    );
+}
+function sanitizeReply(raw, opts) {
+    const maxSentences = (opts && opts.maxSentences) || 3;
+    let t = extractText(raw);
+    t = stripXmlBlocks(t);
+    t = stripFencedBlocks(t);
+    t = unquote(t);
+    t = collapseWS(t);
+    if (maxSentences > 0) t = limitSentences(t, maxSentences);
+    return t || "…";
+}
+
+/* ---------------- autosize hook (JS only) ---------------- */
+function useAutosizeTextArea(textAreaRef, value) {
+    useLayoutEffect(() => {
+        const el = textAreaRef && textAreaRef.current;
+        if (!el) return;
+        el.style.height = "0px";
+        el.style.height = el.scrollHeight + "px";
+    }, [textAreaRef, value]);
+}
 
 export const PeriChat = () => {
     const [input, setInput] = useState("");
-    // const [msgs, setMsgs] = useState(() => {
-    //     try { return JSON.parse(localStorage.getItem("peri_chat_msgs") || "[]"); } catch { return []; }
-    // });
-    const [msgs, setMsgs] = useState(() => []);
+    const [msgs, setMsgs] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem("peri_chat_msgs") || "[]");
+        } catch {
+            return [];
+        }
+    });
     const [loading, setLoading] = useState(false);
+
     const listRef = useRef(null);
-    const mountedRef = useRef(true);
     const inputRef = useRef(null);
+    const abortRef = useRef(null);
     useAutosizeTextArea(inputRef, input);
 
     const questionLists = [
@@ -21,28 +72,31 @@ export const PeriChat = () => {
 
     const isEmpty = msgs.length === 0;
 
-    async function chatWithPeri(prompt) {
-        const res = await peridot_ai.chat(prompt);
-        return String(res ?? "");
+    async function json(res) {
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+        return res.json();
     }
 
-    function useAutosizeTextArea(textAreaRef, value) {
-        useLayoutEffect(() => {
-            const el = textAreaRef?.current;
-            if (!el) return;
-            el.style.height = "0px";                   // reset dulu
-            el.style.height = el.scrollHeight + "px";  // set ke konten
-        }, [textAreaRef, value]);
+    // Selalu return string yang sudah “bersih”
+    async function chat(query) {
+        if (abortRef.current) abortRef.current.abort();
+        const ac = new AbortController();
+        abortRef.current = ac;
+
+        const raw = await json(
+            await fetch("https://chatbot.peridotvault.com/api/v1/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query }),
+                signal: ac.signal,
+            })
+        );
+        return sanitizeReply(raw, { maxSentences: 3 });
     }
 
     useEffect(() => {
         localStorage.setItem("peri_chat_msgs", JSON.stringify(msgs));
     }, [msgs]);
-
-    useEffect(() => {
-        mountedRef.current = true;
-        return () => { mountedRef.current = false; };
-    }, []);
 
     useLayoutEffect(() => {
         if (!listRef.current) return;
@@ -50,21 +104,28 @@ export const PeriChat = () => {
     }, [msgs.length, loading]);
 
     async function send(text) {
-        const trimmed = text.trim();
+        const trimmed = (text || "").trim();
         if (!trimmed || loading) return;
-        setMsgs((m) => [...m, { id: crypto.randomUUID(), role: "user", text: trimmed, ts: Date.now() }]);
-        setInput("");
+
+        const userMsg = { id: crypto.randomUUID(), role: "user", text: trimmed };
+        setMsgs((m) => [...m, userMsg]);
         setLoading(true);
+        setInput("");
+
         try {
-            const reply = await chatWithPeri(trimmed);
-            if (!mountedRef.current) return;
-            setMsgs((m) => [...m, { id: crypto.randomUUID(), role: "assistant", text: reply || "…", ts: Date.now() }]);
+            const reply = await chat(trimmed);
+            const aiMsg = { id: crypto.randomUUID(), role: "assistant", text: reply };
+            setMsgs((m) => [...m, aiMsg]);
         } catch (e) {
-            if (!mountedRef.current) return;
-            setMsgs((m) => [...m, { id: crypto.randomUUID(), role: "assistant", text: "Maaf, terjadi kesalahan.", ts: Date.now() }]);
+            const aiMsg = {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                text: "Sorry, something went wrong. Please contact support.",
+            };
+            setMsgs((m) => [...m, aiMsg]);
             console.error(e);
         } finally {
-            if (mountedRef.current) setLoading(false);
+            setLoading(false);
         }
     }
 
@@ -81,7 +142,6 @@ export const PeriChat = () => {
 
     return (
         <section className="w-full h-screen pt-24">
-            {/* === WELCOME MODE: semua di tengah === */}
             {isEmpty ? (
                 <div className="h-full w-full max-w-3xl mx-auto px-4 flex flex-col items-center justify-center gap-12 text-center">
                     <div className="flex flex-col gap-6 items-center">
@@ -92,7 +152,6 @@ export const PeriChat = () => {
                         </div>
                     </div>
 
-                    {/* Input di TENGAH (bukan bawah) */}
                     <form onSubmit={onSubmit} className="w-full">
                         <div className="bg-background_primary border border-white/10 rounded-lg p-2">
                             <textarea
@@ -125,7 +184,6 @@ export const PeriChat = () => {
                     </ol>
                 </div>
             ) : (
-                /* === CHAT MODE: list scroll + input di bawah === */
                 <div className="h-full w-full mx-auto px-4 pt-6 pb-4 flex flex-col items-center gap-4">
                     <div
                         ref={listRef}
@@ -134,7 +192,7 @@ export const PeriChat = () => {
                         aria-busy={loading ? "true" : "false"}
                     >
                         {msgs.map((m) => (
-                            <div key={m.id} className={`w-full max-w-3xl  flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                            <div key={m.id} className={`w-full max-w-3xl flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                                 <div
                                     className={`max-w-[80%] rounded-xl px-4 py-3 leading-relaxed border border-white/10 whitespace-pre-wrap break-words ${m.role === "user" ? "bg-white/10 text-white" : "bg-background_primary/80 text-white/90"
                                         }`}
@@ -149,9 +207,9 @@ export const PeriChat = () => {
                                 <div className="max-w-[80%]">
                                     <div className="text-[10px] tracking-wider text-text_disabled/70 mb-1">Peri</div>
                                     <div className="rounded-xl border border-white/10 px-4 py-3 bg-background_primary/80 inline-flex items-center gap-1">
-                                        <span className="h-2 w-2 rounded-full inline-block animate-bounce" />
-                                        <span className="h-2 w-2 rounded-full inline-block animate-bounce" style={{ animationDelay: "120ms" }} />
-                                        <span className="h-2 w-2 rounded-full inline-block animate-bounce" style={{ animationDelay: "240ms" }} />
+                                        <span className="h-2 w-2 bg-background_disabled rounded-full inline-block animate-bounce" />
+                                        <span className="h-2 w-2 bg-background_disabled rounded-full inline-block animate-bounce" style={{ animationDelay: "120ms" }} />
+                                        <span className="h-2 w-2 bg-background_disabled rounded-full inline-block animate-bounce" style={{ animationDelay: "240ms" }} />
                                     </div>
                                 </div>
                             </div>

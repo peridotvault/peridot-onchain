@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { DownloadComponent } from '../components/atoms/DownloadComponent';
 import StaggeredMenu from '../components/atoms/StaggeredMenu';
 
@@ -22,6 +22,10 @@ export const Navbar = () => {
         { label: 'Github', link: 'https://github.com/peridotvault' },
         { label: 'Telegram', link: 'https://t.me/peridotvault' },
     ];
+
+    const base = 'hover:font-bold duration-300 hover:text-accent_primary';
+    const active = 'font-bold text-accent_primary';
+    const inactive = '';
 
     // blur background on scroll (punyamu)
     useEffect(() => {
@@ -58,7 +62,16 @@ export const Navbar = () => {
                     {/* Desktop actions */}
                     <nav className="gap-8 items-center flex text-lg">
                         {menuItems.map((item, index) => (
-                            <Link to={item.link} aria-label={item.label} className='hover:font-bold duration-300 hover:text-accent_primary' target={item.target}>{item.label}</Link>
+                            <NavLink
+                                key={index}
+                                to={item.link}
+                                aria-label={item.label}
+                                className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
+                                target={item.target}
+                                title={item.label}
+                            >
+                                {item.label}
+                            </NavLink>
                         ))}
                     </nav>
 

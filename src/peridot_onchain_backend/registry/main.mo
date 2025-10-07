@@ -62,4 +62,8 @@ persistent actor PeridotRegistry {
     GameRecordServices.getAllGameRecordLimit(gameRecords, start, limit);
   };
 
+  public shared func getGameByDeveloperId(dev : Principal, gameId : Core.GameId) : async ApiResponse<GameRecordType> {
+    await GameRecordServices.getGameByDeveloperId(gameRecords, dev, gameId);
+  };
+
 };

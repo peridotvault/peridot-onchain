@@ -1,5 +1,6 @@
 import PeridotRegistry "canister:peridot_registry";
 import PeridotVault "canister:peridot_vault";
+import PeridotDirectory "canister:peridot_directory";
 
 import Principal "mo:base/Principal";
 import Array "mo:base/Array";
@@ -48,7 +49,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
     hub = ?Principal.fromActor(PeridotVault);
   };
 
-  private func isHaveAuthority(p : Principal) : Bool {
+  private func isHaveAuthority(p : Principal) : async Bool {
     let isOwner = Principal.equal(p, owner);
 
     let isRegistry = switch (controllers.registry) {
@@ -61,8 +62,10 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       case null false;
     };
 
+    let isDev = await PeridotDirectory.isUserDeveloper(p);
+
     // ekspresi terakhir mengembalikan Bool (tidak pakai ';')
-    isOwner or isRegistry or isVault;
+    isOwner or isRegistry or isVault or isDev;
   };
   // private var controllers : Controllers = { registry = registry; hub = hub };
   private var _defaultCycles : Nat = 2_000_000_000_000; // 2T cycles
@@ -70,7 +73,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
 
   // ===== Configuration =====
   public shared ({ caller }) func set_controllers(newControllers : Controllers) : async Bool {
-    assert (isHaveAuthority(caller));
+    assert (await isHaveAuthority(caller));
     controllers := newControllers;
     true;
   };
@@ -78,7 +81,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
   public query func get_controllers() : async Controllers { controllers };
 
   public shared ({ caller }) func set_default_cycles(n : Nat) : async Bool {
-    assert (isHaveAuthority(caller));
+    assert (await isHaveAuthority(caller));
     _defaultCycles := n;
     true;
   };
@@ -92,7 +95,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       controllers_extra : ?[Principal];
     }
   ) : async Principal {
-    assert (isHaveAuthority(caller));
+    assert (await isHaveAuthority(caller));
 
     // Set Controllers for PGL Standard
     let (regP, hubP) : (Principal, Principal) = switch (controllers.registry, controllers.hub) {
@@ -179,4 +182,55 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       controllers = await pgl1.get_controllers();
     };
   };
+
+  public shared ({ caller }) func list_my_pgl1_min(
+    only_unregistered : ?Bool
+  ) : async [{
+    canister_id : Principal;
+    game_id : Text;
+    name : Text;
+    registered : Bool;
+  }] {
+    let onlyUnreg : Bool = switch (only_unregistered) {
+      case (?x) x;
+      case null false;
+    };
+
+    var out : [{
+      canister_id : Principal;
+      game_id : Text;
+      name : Text;
+      registered : Bool;
+    }] = [];
+
+    for ((cid, _) in _createdPGL1s.vals()) {
+      let pgl1 : actor {
+        get_controllers : () -> async T.Controllers;
+        pgl1_game_id : () -> async Text;
+        pgl1_name : () -> async Text;
+      } = actor (Principal.toText(cid));
+
+      let ctrls = await pgl1.get_controllers();
+
+      // hanya milik developer = caller
+      switch (ctrls.developer) {
+        case (?dev) {
+          if (Principal.equal(dev, caller)) {
+            let isReg = await PeridotRegistry.isGameRegistered(cid);
+            if (onlyUnreg and isReg) {
+              // skip yang sudah registered
+            } else {
+              let gid = await pgl1.pgl1_game_id();
+              let nm = await pgl1.pgl1_name();
+              out := Array.append(out, [{ canister_id = cid; game_id = gid; name = nm; registered = isReg }]);
+            };
+          };
+        };
+        case (null) {};
+      };
+    };
+
+    out;
+  }
+
 };
