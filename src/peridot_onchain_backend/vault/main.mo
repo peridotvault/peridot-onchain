@@ -99,16 +99,8 @@ persistent actor PeridotVault {
     await GameService.updateGame(gameId, caller, args);
   };
 
-  public shared func getPublishedGames(start : Nat, limit : Nat) : async ApiResponse<[PGLMeta]> {
-    await GameService.getPublishedGames(start, limit);
-  };
-
   public shared func getGameMetadata(gameCanisterId : Text) : async PGLMeta {
     await GameService.getGameMetadata(gameCanisterId);
-  };
-
-  public shared func getAllGames(start : Nat, limit : Nat) : async [PGLMeta] {
-    await GameService.getAllGames(start, limit);
   };
 
   public shared func getGamesByGameId(gameId : Text) : async ?PGLMeta {

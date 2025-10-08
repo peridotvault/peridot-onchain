@@ -26,36 +26,8 @@ module GameServiceModule {
   type V = PGL1Types.Value;
 
   // helpers
-  func md_get_text(mdOpt : ?[(Text, V)], key : Text) : ?Text {
-    switch (mdOpt) {
-      case null null;
-      case (?md) {
-        for ((k, v) in md.vals()) {
-          if (k == key) {
-            switch (v) {
-              case (#text t) return ?t;
-              case _ return null;
-            };
-          };
-        };
-        null;
-      };
-    };
-  };
-
   func asPGL1(canisterIdTxt : Text) : PGL1.PGL1Ledger {
     actor (canisterIdTxt);
-  };
-
-  func is_published(mdOpt : ?[(Text, V)]) : Bool {
-    let statusTxt = switch (md_get_text(mdOpt, "pgl1_status")) {
-      case (?t) t;
-      case null "";
-    };
-    // kamu pakai "published" vs "draft/notPublish"
-    // normalisasi biar aman
-    let s = Text.toLowercase(statusTxt);
-    s == "published" or s == "publish";
   };
 
   // update
@@ -100,51 +72,11 @@ module GameServiceModule {
     };
   };
 
-  // get
-  public func getPublishedGames(start : Nat, limit : Nat) : async ApiResponse<[PGLMeta]> {
-    if (limit == 0) return #ok([]);
-    let recsResp = await PeridotRegistry.getAllGameRecord(); // atau versi paginated-mu
-    let recs = Helpers.expectOk(recsResp, "getAllGameRecord");
-
-    var taken : Nat = 0;
-    var i : Nat = 0;
-    var out : [PGLMeta] = [];
-
-    label scan for (rec in recs.vals()) {
-      // pagination lokal
-      if (i < start) { i += 1; continue scan };
-      if (taken >= limit) break scan;
-
-      let pgl1 = asPGL1(Principal.toText(rec.canister_id));
-      let meta = await pgl1.pgl1_game_metadata();
-      if (is_published(meta.pgl1_metadata)) {
-        out := Array.append(out, [meta]);
-        taken += 1;
-      };
-
-      i += 1;
-    };
-
-    #ok(out);
-  };
-
   public func getGameMetadata(gameCanisterId : Text) : async PGL1Types.PGLContractMeta {
     let isReg = await PeridotRegistry.isGameRegistered(Principal.fromText(gameCanisterId));
     assert (isReg);
     let pgl1 : PGL1Ledger = asPGL1(gameCanisterId);
     await pgl1.pgl1_game_metadata();
-  };
-
-  public func getAllGames(start : Nat, limit : Nat) : async [PGLMeta] {
-    let recsResp = await PeridotRegistry.getAllGameRecordLimit(start, limit);
-    let recs = Helpers.expectOk<[GameRecord]>(recsResp, "getAllGameRecord");
-
-    var out : [PGLMeta] = [];
-    for (rec in recs.vals()) {
-      let meta = await asPGL1(Principal.toText(rec.canister_id)).pgl1_game_metadata();
-      out := Array.append(out, [meta]);
-    };
-    out;
   };
 
   public func getGamesByGameId(gameId : Text) : async ?PGLMeta {
