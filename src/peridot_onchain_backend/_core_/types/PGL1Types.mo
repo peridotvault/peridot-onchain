@@ -22,7 +22,8 @@ module PGL1Types {
 
   public type PGLContractMeta = {
     pgl1_game_id : GameId; // "com.peridotvault.vaultbreakers"
-    pgl1_cover_image : ?Text; // URL gambar utama (prefer https)
+    pgl1_cover_vertical_image : ?Text;
+    pgl1_cover_horizontal_image : ?Text;
     pgl1_name : Text; // "Vault Breakers"
     pgl1_description : Text; // ringkas (untuk listing)
     pgl1_price : ?Nat; // nominal
@@ -34,7 +35,8 @@ module PGL1Types {
   };
 
   public type PGLUpdateMeta = {
-    cover_image : ??Text;
+    cover_vertical_image : ??Text;
+    cover_horizontal_image : ??Text;
     name : ?Text;
     description : ?Text;
     price : ??Nat;
@@ -76,6 +78,7 @@ module PGL1Types {
     storage : Nat; // in MB/GB
     graphics : Text;
     additionalNotes : ?Text;
+    liveVersion : ?Text;
   };
 
   public type Manifest = {
@@ -132,7 +135,8 @@ module PGL1Types {
     pgl1_name : query () -> async Text;
     pgl1_description : query () -> async Text;
     pgl1_price : query () -> async ?Nat;
-    pgl1_cover_image : query () -> async ?Text;
+    pgl1_cover_vertical_image : query () -> async ?Text;
+    pgl1_cover_horizontal_image : query () -> async ?Text;
     pgl1_required_age : query () -> async ?Nat;
     pgl1_banner_image : query () -> async ?Text;
     pgl1_website : query () -> async ?Text;

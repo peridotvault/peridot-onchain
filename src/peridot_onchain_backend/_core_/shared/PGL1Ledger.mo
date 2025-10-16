@@ -69,7 +69,8 @@ shared ({ caller }) persistent actor class PGL1Ledger(initMeta : ?T.PGLContractM
     case (null) {
       {
         pgl1_game_id = "PERIDOTG";
-        pgl1_cover_image = ?"https://...";
+        pgl1_cover_vertical_image = ?"https://...";
+        pgl1_cover_horizontal_image = ?"https://...";
         pgl1_name = "PeridotVault Game";
         pgl1_description = "PeridotVault Description";
         pgl1_price = ?0;
@@ -202,9 +203,13 @@ shared ({ caller }) persistent actor class PGL1Ledger(initMeta : ?T.PGLContractM
       case (?v) { newView := { newView with pgl1_description = v } };
     };
 
-    switch (args.cover_image) {
+    switch (args.cover_vertical_image) {
       case (null) {};
-      case (?v) { newView := { newView with pgl1_cover_image = v } };
+      case (?v) { newView := { newView with pgl1_cover_vertical_image = v } };
+    };
+    switch (args.cover_horizontal_image) {
+      case (null) {};
+      case (?v) { newView := { newView with pgl1_cover_horizontal_image = v } };
     };
 
     switch (args.price) {
@@ -251,7 +256,12 @@ shared ({ caller }) persistent actor class PGL1Ledger(initMeta : ?T.PGLContractM
   public query func pgl1_name() : async Text { view.pgl1_name };
   public query func pgl1_description() : async Text { view.pgl1_description };
   public query func pgl1_price() : async ?Nat { view.pgl1_price };
-  public query func pgl1_cover_image() : async ?Text { view.pgl1_cover_image };
+  public query func pgl1_cover_vertical_image() : async ?Text {
+    view.pgl1_cover_vertical_image;
+  };
+  public query func pgl1_cover_horizontal_image() : async ?Text {
+    view.pgl1_cover_horizontal_image;
+  };
   public query func pgl1_required_age() : async ?Nat { view.pgl1_required_age };
   public query func pgl1_banner_image() : async ?Text { view.pgl1_banner_image };
   public query func pgl1_website() : async ?Text { view.pgl1_website };

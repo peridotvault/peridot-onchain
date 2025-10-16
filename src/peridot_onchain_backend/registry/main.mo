@@ -34,7 +34,12 @@ persistent actor PeridotRegistry {
   };
 
   system func postupgrade() {
-    gameRecords := HashMap.fromIter<Core.GameId, GameRecordType>(gameRecordEntries.vals(), 8, Text.equal, Text.hash);
+    gameRecords := HashMap.fromIter<Core.GameId, GameRecordType>(
+      gameRecordEntries.vals(),
+      8,
+      Text.equal,
+      Text.hash,
+    );
 
     gameRecordEntries := [];
   };
@@ -45,10 +50,16 @@ persistent actor PeridotRegistry {
   public shared func register_game(createGameRecord : GRT.CreateGameRecord) : async ApiResponse<GameRecordType> {
     await GameRecordServices.register_game(gameRecords, createGameRecord);
   };
+  // public shared func register_game(createGameRecord : GRT.CreateGameRecord) : async ApiResponse<GameRecordType> {
+  //   await GameRecordServices.register_game(gameRecords, canisterToGameId, createGameRecord);
+  // };
 
   public query func isGameRegistered(canisterId : Principal) : async Bool {
     GameRecordServices.isGameRegistered(gameRecords, canisterId);
   };
+  // public query func isGameRegistered(canisterId : Principal) : async Bool {
+  //   GameRecordServices.isGameRegistered(canisterToGameId, canisterId);
+  // };
 
   public query func getGameRecordById(gameId : Core.GameId) : async ApiResponse<GameRecordType> {
     GameRecordServices.getGameRecordById(gameRecords, gameId);

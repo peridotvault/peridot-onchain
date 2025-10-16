@@ -81,7 +81,8 @@ module GameServiceModule {
         let patch : PGL1Types.PGLUpdateMeta = {
           name = ?args.pgl1_name;
           description = ?args.pgl1_description;
-          cover_image = ?args.pgl1_cover_image;
+          cover_vertical_image = ?args.pgl1_cover_vertical_image;
+          cover_horizontal_image = ?args.pgl1_cover_horizontal_image;
           price = ?args.pgl1_price;
           required_age = ?args.pgl1_required_age;
           banner_image = ?args.pgl1_banner_image;
