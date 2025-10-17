@@ -21,7 +21,7 @@ export const LandingPage = () => {
         <div className='flex flex-col items-center justify-center text-lg'>
             <ParticlesComponent />
             <Section1 />
-            <Section2 />
+            {/* <Section2 /> */}
             <Section3 />
             <SectionUI />
             <SectionAI />
