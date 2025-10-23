@@ -33,7 +33,7 @@ shared ({ caller }) persistent actor class PGC1(
 
   // ========== CONSTANTS ==========
   // pakai Nat (bukan Int) agar aman untuk operasi Nat
-  let REFUND_WINDOW_NANOS : Int = 24 * 60 * 60 * 1_000_000_000;
+  let REFUND_WINDOW_NANOS : Time.Time = 24 * 60 * 60 * 1_000_000_000;
 
   // ========== STABLE STATE ==========
   let gameId : Text = initGameId;
@@ -216,7 +216,6 @@ shared ({ caller }) persistent actor class PGC1(
       case (?v) v;
     };
 
-    // konversi waktu ke Nat untuk perbandingan
     let purchasedAt : Timestamp = p.time;
     let now : Timestamp = Time.now();
     if (now > purchasedAt + REFUND_WINDOW_NANOS) {
@@ -226,12 +225,7 @@ shared ({ caller }) persistent actor class PGC1(
     assert totalPurchased > 0;
     assert refundableBalance >= p.amount;
 
-    // rollback state dulu
-    ignore purchases.remove(caller);
-    totalPurchased -= 1;
-    refundableBalance -= p.amount;
-
-    // kirim balik dana dari canister -> user
+    // 🔹 KIRIM DANA DULU (jangan ubah state dulu!)
     let ledger : TokenLedger.Self = actor (Principal.toText(tokenCanister));
     let r = await ledger.icrc1_transfer({
       from_subaccount = null;
@@ -244,13 +238,16 @@ shared ({ caller }) persistent actor class PGC1(
 
     switch (r) {
       case (#Err e) {
-        // restore state jika refund gagal
-        purchases.put(caller, p);
-        totalPurchased += 1;
-        refundableBalance += p.amount;
+        // 🔹 TIDAK PERLU ROLLBACK — state belum diubah!
         throw Error.reject("Refund failed: " # debug_show e);
       };
-      case (#Ok _id) { return };
+      case (#Ok _id) {
+        // 🔹 BARU UBAH STATE SETELAH SUKSES
+        ignore purchases.remove(caller);
+        totalPurchased -= 1;
+        refundableBalance -= p.amount;
+        return;
+      };
     };
   };
 
