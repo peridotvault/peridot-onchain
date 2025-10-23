@@ -1,7 +1,7 @@
 {
   "canisters": {
-    "peridot_directory": {
-      "main": "src/peridot_onchain_backend/directory/main.mo",
+    "pgc1": {
+      "main": "src/peridot_onchain_backend/_core_/shared/PGC1.mo",
       "type": "motoko",
       "moc": {
         "args": [
@@ -12,22 +12,6 @@
     "peridot_registry": {
       "main": "src/peridot_onchain_backend/registry/main.mo",
       "type": "motoko",
-      "dependencies": [
-        "peridot_directory"
-      ],
-      "moc": {
-        "args": [
-          "--enhanced-orthogonal-persistence"
-        ]
-      }
-    },
-    "peridot_vault": {
-      "main": "src/peridot_onchain_backend/vault/main.mo",
-      "type": "motoko",
-      "dependencies": [
-        "peridot_directory",
-        "peridot_registry"
-      ],
       "moc": {
         "args": [
           "--enhanced-orthogonal-persistence"
@@ -38,9 +22,7 @@
       "main": "src/peridot_onchain_backend/factory/main.mo",
       "type": "motoko",
       "dependencies": [
-        "peridot_directory",
-        "peridot_registry",
-        "peridot_vault"
+        "peridot_registry"
       ],
       "moc": {
         "args": [
@@ -49,10 +31,6 @@
       }
     },
     "peridot_onchain_frontend": {
-      "dependencies": [
-        "peridot_directory",
-        "peridot_vault"
-      ],
       "source": [
         "src/peridot_onchain_frontend/dist"
       ],
