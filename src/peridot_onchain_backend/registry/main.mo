@@ -5,6 +5,11 @@ import Iter "mo:base/Iter";
 import Principal "mo:base/Principal";
 import Nat "mo:base/Nat";
 import Nat8 "mo:base/Nat8";
+import Blob "mo:base/Blob";
+import Nat32 "mo:base/Nat32";
+import Array "mo:base/Array";
+import Random "mo:base/Random";
+import Buffer "mo:base/Buffer";
 import GRT "types/GameRecordTypes";
 import GameRecordServices "services/GameRecordServices";
 import TokenLedger "../_core_/shared/TokenLedger";
@@ -29,6 +34,7 @@ persistent actor PeridotRegistry {
   // GOVERNANCE / PAYMENT CONFIG ===================================
   // Satu kali set governor; berikutnya hanya governor yang boleh ubah config.
   private var gov : ?Principal = null;
+  private var admins : [Principal] = [];
 
   // fee $10 dalam smallest unit. ckUSDT umumnya 6 desimal => 10 * 10^6.
   private var fee_amount : Nat = 10_000_000; // 10 USDT (6 decimals)
@@ -38,13 +44,18 @@ persistent actor PeridotRegistry {
 
   // SNAPSHOTS ======================================================
   private var gameRecordEntries : [(Core.GameId, GameRecordType)] = [];
+  private var activeVoucherEntries : [Nat32] = [];
+  private var adminEntries : [Principal] = [];
 
   // STATE ==========================================================
   private transient var gameRecords : GRT.GameRecordHashMap = HashMap.HashMap(8, Text.equal, Text.hash);
+  private transient var activeVouchers : HashMap.HashMap<Nat32, ()> = HashMap.HashMap(32, Nat32.equal, func(x : Nat32) : Nat32 { x });
 
   // SYSTEM =========================================================
   system func preupgrade() {
     gameRecordEntries := Iter.toArray(gameRecords.entries());
+    activeVoucherEntries := Iter.toArray(activeVouchers.keys());
+    adminEntries := admins;
   };
 
   system func postupgrade() {
@@ -54,8 +65,70 @@ persistent actor PeridotRegistry {
       Text.equal,
       Text.hash,
     );
+    for (hash in activeVoucherEntries.vals()) {
+      activeVouchers.put(hash, ());
+    };
+    admins := adminEntries;
 
     gameRecordEntries := [];
+    activeVoucherEntries := [];
+    adminEntries := [];
+  };
+
+  // ================================================================
+  // Authority Helpers ==============================================
+  // ================================================================
+
+  // 🔹 Check if caller is governor
+  private func isGovernor(caller : Principal) : Bool {
+    switch (gov) {
+      case (?g) Principal.equal(caller, g);
+      case null false;
+    };
+  };
+
+  // 🔹 Check if caller is admin
+  private func isAdmin(caller : Principal) : Bool {
+    Array.find<Principal>(admins, func(a) { Principal.equal(a, caller) }) != null;
+  };
+
+  // 🔹 Check if caller has voucher authority (governor OR admin)
+  private func hasVoucherAuthority(caller : Principal) : Bool {
+    isGovernor(caller) or isAdmin(caller);
+  };
+
+  // ================================================================
+  // Admin Management ===============================================
+  // ================================================================
+
+  public shared ({ caller }) func add_admin(admin : Principal) : async ApiResponse<Bool> {
+    if (not isGovernor(caller)) {
+      return #err(#NotAuthorized("Only governor can add admins"));
+    };
+
+    if (isAdmin(admin)) {
+      return #err(#ValidationError("Principal is already an admin"));
+    };
+
+    admins := Array.append(admins, [admin]);
+    #ok(true);
+  };
+
+  public shared ({ caller }) func remove_admin(admin : Principal) : async ApiResponse<Bool> {
+    if (not isGovernor(caller)) {
+      return #err(#NotAuthorized("Only governor can remove admins"));
+    };
+
+    if (not isAdmin(admin)) {
+      return #err(#NotFound("Principal is not an admin"));
+    };
+
+    admins := Array.filter<Principal>(admins, func(a) { not Principal.equal(a, admin) });
+    #ok(true);
+  };
+
+  public query func get_admins() : async [Principal] {
+    admins;
   };
 
   // ================================================================
@@ -63,7 +136,7 @@ persistent actor PeridotRegistry {
   // ================================================================
   func pow10(n : Nat8) : Nat {
     var r : Nat = 1;
-    var i : Nat = Nat8.toNat(n); // <= perbaikan (bukan Nat.fromNat8)
+    var i : Nat = Nat8.toNat(n);
     while (i > 0) { r *= 10; i -= 1 };
     r;
   };
@@ -83,15 +156,14 @@ persistent actor PeridotRegistry {
       label scan for ((k, v) in md.vals()) {
         if (k == "icrc1:decimals" or k == "decimals") {
           switch (v) {
-            case (#Nat n) { return Nat8.fromNat(n) }; // <= perbaikan (bukan Nat.toNat8)
-            case _ {}; // lanjut scan
+            case (#Nat n) { return Nat8.fromNat(n) };
+            case _ {};
           };
         };
       };
-      // jika key tidak ketemu, pakai default
       return 6 : Nat8;
     } catch (_) {
-      return 6 : Nat8; // <= literal Nat8
+      return 6 : Nat8;
     };
   };
 
@@ -104,7 +176,7 @@ persistent actor PeridotRegistry {
 
   public shared ({ caller }) func set_payment_config(
     token : Principal,
-    usd_units : Nat, // contoh: 10 untuk $10
+    usd_units : Nat,
     dest : Principal,
   ) : async Bool {
     switch (gov) {
@@ -132,6 +204,205 @@ persistent actor PeridotRegistry {
       amount_smallest = fee_amount;
       decimals = fee_decimals;
     };
+  };
+
+  // ================================================================
+  // Voucher - Random Code Generator ================================
+  // ================================================================
+
+  // 🔹 Generate random alphanumeric code
+  private func generateRandomCode(length : Nat, seed : Blob) : Text {
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let charsArray = Text.toArray(chars);
+    let charsLen = charsArray.size();
+
+    var code = "";
+    var currentSeed = seed;
+
+    var i = 0;
+    while (i < length) {
+      let rand = Random.Finite(currentSeed);
+
+      switch (rand.byte()) {
+        case (?byte) {
+          let index = Nat8.toNat(byte) % charsLen;
+          let char = charsArray[index];
+          code #= Text.fromChar(char);
+
+          // Update seed untuk iterasi berikutnya
+          currentSeed := Blob.fromArray([byte]);
+        };
+        case null {
+          // Fallback jika random gagal
+          code #= "X";
+        };
+      };
+
+      i += 1;
+    };
+
+    code;
+  };
+
+  // 🔹 Generate multiple unique voucher codes
+  public shared ({ caller }) func generate_vouchers(
+    count : Nat,
+    codeLength : ?Nat,
+  ) : async ApiResponse<[Text]> {
+    // Check authority (governor OR admin)
+    if (not hasVoucherAuthority(caller)) {
+      return #err(#NotAuthorized("Only governor or admin can generate vouchers"));
+    };
+
+    if (count == 0 or count > 100) {
+      return #err(#ValidationError("Count must be between 1 and 100"));
+    };
+
+    let len = switch (codeLength) {
+      case (?l) if (l < 6 or l > 20) { 12 } else { l };
+      case null 12;
+    };
+
+    let generatedCodes = Buffer.Buffer<Text>(count);
+    let seed = await Random.blob(); // Get random seed from IC
+
+    var attempts = 0;
+    let maxAttempts = count * 10; // Prevent infinite loop
+
+    label generation while (generatedCodes.size() < count and attempts < maxAttempts) {
+      attempts += 1;
+
+      // Generate random code dengan seed yang berubah
+      let seedWithAttempt = Blob.fromArray(
+        Array.append(Blob.toArray(seed), [Nat8.fromNat(attempts % 256)])
+      );
+      let code = generateRandomCode(len, seedWithAttempt);
+      let codeHash = Text.hash(code);
+
+      // Check uniqueness
+      if (activeVouchers.get(codeHash) == null) {
+        // Check tidak duplikat dalam batch ini
+        var isDuplicate = false;
+        for (existingCode in generatedCodes.vals()) {
+          if (Text.equal(code, existingCode)) {
+            isDuplicate := true;
+          };
+        };
+
+        if (not isDuplicate) {
+          activeVouchers.put(codeHash, ());
+          generatedCodes.add(code);
+        };
+      };
+    };
+
+    if (generatedCodes.size() < count) {
+      return #err(#ValidationError("Failed to generate unique vouchers, try again"));
+    };
+
+    #ok(Buffer.toArray(generatedCodes));
+  };
+
+  // ================================================================
+  // Voucher - Manual Creation ======================================
+  // ================================================================
+
+  // 🔹 Create single voucher with custom code (governor OR admin)
+  public shared ({ caller }) func create_voucher(code : Text) : async ApiResponse<Bool> {
+    // Check authority (governor OR admin)
+    if (not hasVoucherAuthority(caller)) {
+      return #err(#NotAuthorized("Only governor or admin can create vouchers"));
+    };
+
+    if (Text.size(code) < 4) {
+      return #err(#ValidationError("Voucher code must be at least 4 characters"));
+    };
+
+    let codeHash = Text.hash(code);
+
+    // Check if voucher already exists
+    if (activeVouchers.get(codeHash) != null) {
+      return #err(#ValidationError("Voucher code already exists"));
+    };
+
+    activeVouchers.put(codeHash, ());
+    #ok(true);
+  };
+
+  // 🔹 Redeem voucher untuk register game gratis
+  public shared ({ caller }) func redeem_voucher(
+    code : Text,
+    createGameRecord : GRT.CreateGameRecord,
+  ) : async ApiResponse<GameRecordType> {
+    let codeHash = Text.hash(code);
+
+    // 1️⃣ Cek apakah voucher aktif
+    if (activeVouchers.get(codeHash) == null) {
+      return #err(#NotFound("Invalid or expired voucher"));
+    };
+
+    // 2️⃣ Verifikasi caller adalah owner PGC1 SEBELUM hapus voucher
+    let pgc1 : actor {
+      getOwner : () -> async Principal;
+    } = actor (Principal.toText(createGameRecord.canister_id));
+
+    let owner = try {
+      await pgc1.getOwner();
+    } catch (_) {
+      return #err(#ValidationError("Failed to verify canister ownership"));
+    };
+
+    if (owner != caller) {
+      return #err(#NotAuthorized("Caller must be PGC1 owner"));
+    };
+
+    // 3️⃣ Register game (jika gagal, voucher tidak dihapus)
+    let registerResult = await GameRecordServices.register_game(
+      gameRecords,
+      caller,
+      createGameRecord,
+    );
+
+    // 4️⃣ HANYA hapus voucher jika registrasi berhasil
+    switch (registerResult) {
+      case (#ok gameRecord) {
+        ignore activeVouchers.remove(codeHash);
+        #ok(gameRecord);
+      };
+      case (#err e) {
+        // Voucher tetap valid jika registrasi gagal
+        #err(e);
+      };
+    };
+  };
+
+  // 🔹 Revoke/delete voucher (governor OR admin)
+  public shared ({ caller }) func revoke_voucher(code : Text) : async ApiResponse<Bool> {
+    if (not hasVoucherAuthority(caller)) {
+      return #err(#NotAuthorized("Only governor or admin can revoke vouchers"));
+    };
+
+    let codeHash = Text.hash(code);
+
+    switch (activeVouchers.remove(codeHash)) {
+      case (?_) #ok(true);
+      case null #err(#NotFound("Voucher not found"));
+    };
+  };
+
+  // 🔹 Query voucher status
+  public query func is_voucher_valid(code : Text) : async Bool {
+    let codeHash = Text.hash(code);
+    activeVouchers.get(codeHash) != null;
+  };
+
+  // 🔹 List active vouchers count (governor OR admin)
+  public shared query ({ caller }) func get_voucher_count() : async ApiResponse<Nat> {
+    if (not hasVoucherAuthority(caller)) {
+      return #err(#NotAuthorized("Only governor or admin can view voucher stats"));
+    };
+
+    #ok(activeVouchers.size());
   };
 
   // ================================================================

@@ -91,6 +91,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
   } {
     // 1) create PGC1
     let cid = await createPGC1({
+      caller = caller;
       meta = args.meta;
       controllers_extra = args.controllers_extra;
     });
@@ -107,9 +108,59 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
     };
   };
 
-  // ===== CREATE PGC1 CANISTER =====
-  private shared ({ caller }) func createPGC1(
+  // ================================================================
+  // CREATE + REGISTER (WITH VOUCHER) ===============================
+  // ================================================================
+
+  // 🔹 Create PGC1 + Register menggunakan voucher code
+  public shared ({ caller }) func createAndRegisterPGC1WithVoucher(
     args : {
+      meta : IPGC1.init;
+      controllers_extra : ?[Principal];
+      voucher_code : Text;
+    }
+  ) : async {
+    canister_id : Principal;
+    registered : Bool;
+    error : ?Text;
+  } {
+    // 1) Verify voucher valid SEBELUM create canister (save cycles!)
+    let isValid = await PeridotRegistry.is_voucher_valid(args.voucher_code);
+    if (not isValid) {
+      return {
+        canister_id = Principal.fromText("aaaaa-aa"); // placeholder
+        registered = false;
+        error = ?"Invalid or expired voucher code";
+      };
+    };
+
+    // 2) Create PGC1 canister
+    let cid = await createPGC1({
+      caller = caller;
+      meta = args.meta;
+      controllers_extra = args.controllers_extra;
+    });
+
+    // 3) Register dengan voucher
+    let record : GRT.CreateGameRecord = { canister_id = cid };
+    let res = await PeridotRegistry.redeem_voucher(args.voucher_code, record);
+
+    switch (res) {
+      case (#ok _rec) { { canister_id = cid; registered = true; error = null } };
+      case (#err e) {
+        {
+          canister_id = cid;
+          registered = false;
+          error = ?debug_show (e);
+        };
+      };
+    };
+  };
+
+  // ===== CREATE PGC1 CANISTER =====
+  private func createPGC1(
+    args : {
+      caller : Principal;
       meta : IPGC1.init; // 🔹 Tipe baru
       controllers_extra : ?[Principal];
     }
@@ -137,7 +188,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
     let canister_id = Principal.fromActor(pgc1_actor);
 
     // 2) Update controllers
-    let baseCtrls : [Principal] = [Principal.fromActor(this), regP, caller];
+    let baseCtrls : [Principal] = [Principal.fromActor(this), regP, args.caller];
     let ctrls = switch (args.controllers_extra) {
       case (null) baseCtrls;
       case (?xs) Array.append(baseCtrls, xs);
