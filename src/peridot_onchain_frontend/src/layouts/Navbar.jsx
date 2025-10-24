@@ -79,7 +79,7 @@ export const Navbar = () => {
                 </div>
             </div>
 
-            <div className='fixed top-0 left-0 inset-0 z-50 md:hidden pointer-events-none'>
+            <div className='fixed top-0 left-0 inset-0 z-50 md:hidden '>
                 <StaggeredMenu
                     position="right"
                     items={menuItems}

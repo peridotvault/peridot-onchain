@@ -1,6 +1,4 @@
 import PeridotRegistry "canister:peridot_registry";
-import PeridotVault "canister:peridot_vault";
-import PeridotDirectory "canister:peridot_directory";
 
 import Principal "mo:base/Principal";
 import Array "mo:base/Array";
@@ -8,8 +6,10 @@ import Cycles "mo:base/ExperimentalCycles";
 import Debug "mo:base/Debug";
 import Error "mo:base/Error";
 
-import T "../_core_/types/PGL1Types";
-import PGL1 "../_core_/shared/PGL1Ledger";
+// 🔹 GANTI: Impor tipe PGC1 yang benar
+import IPGC1 "../_core_/types/IPGC1";
+import PGC1 "../_core_/shared/PGC1";
+import GRT "../registry/types/GameRecordTypes";
 
 /*
     - update controller & admin
@@ -17,8 +17,7 @@ import PGL1 "../_core_/shared/PGL1Ledger";
 
 // ===== Factory Actor - MUST BE LAST =====
 shared ({ caller = owner }) persistent actor class PeridotFactory(
-  _registry : ?Principal,
-  _hub : ?Principal,
+  _registry : ?Principal
 ) = this {
   // ===== IC Management Canister =====
   type CanisterSettings = {
@@ -39,14 +38,12 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
 
   type Controllers = {
     registry : ?Principal;
-    hub : ?Principal;
   };
 
   let MGMT : Management = actor ("aaaaa-aa");
 
   private var controllers : Controllers = {
     registry = ?Principal.fromActor(PeridotRegistry);
-    hub = ?Principal.fromActor(PeridotVault);
   };
 
   private func isHaveAuthority(p : Principal) : async Bool {
@@ -57,19 +54,13 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       case null false;
     };
 
-    let isVault = switch (controllers.hub) {
-      case (?hb) Principal.equal(p, hb);
-      case null false;
-    };
-
-    let isDev = await PeridotDirectory.isUserDeveloper(p);
-
-    // ekspresi terakhir mengembalikan Bool (tidak pakai ';')
-    isOwner or isRegistry or isVault or isDev;
+    isOwner or isRegistry;
   };
-  // private var controllers : Controllers = { registry = registry; hub = hub };
+
   private var _defaultCycles : Nat = 2_000_000_000_000; // 2T cycles
-  private var _createdPGL1s : [(Principal, T.PGLContractMeta)] = [];
+
+  // 🔹 GANTI: Simpan sebagai PGC1, bukan PGL1
+  private var _createdPGC1s : [(Principal, IPGC1.init)] = [];
 
   // ===== Configuration =====
   public shared ({ caller }) func set_controllers(newControllers : Controllers) : async Bool {
@@ -88,39 +79,116 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
 
   public query func get_default_cycles() : async Nat { _defaultCycles };
 
-  // ===== CREATE PGL1 CANISTER =====
-  public shared ({ caller }) func createPGL1(
+  public shared ({ caller }) func createAndRegisterPGC1Paid(
     args : {
-      meta : T.PGLContractMeta;
+      meta : IPGC1.init;
+      controllers_extra : ?[Principal];
+    }
+  ) : async {
+    canister_id : Principal;
+    registered : Bool;
+    error : ?Text;
+  } {
+    // 1) create PGC1
+    let cid = await createPGC1({
+      caller = caller;
+      meta = args.meta;
+      controllers_extra = args.controllers_extra;
+    });
+
+    // 2) register berbayar (payer = caller / developer)
+    let record : GRT.CreateGameRecord = { canister_id = cid };
+    let res = await PeridotRegistry.register_game_with_fee_for(record, caller);
+
+    switch (res) {
+      case (#ok _rec) { { canister_id = cid; registered = true; error = null } };
+      case (#err e) {
+        { canister_id = cid; registered = false; error = ?debug_show (e) };
+      };
+    };
+  };
+
+  // ================================================================
+  // CREATE + REGISTER (WITH VOUCHER) ===============================
+  // ================================================================
+
+  // 🔹 Create PGC1 + Register menggunakan voucher code
+  public shared ({ caller }) func createAndRegisterPGC1WithVoucher(
+    args : {
+      meta : IPGC1.init;
+      controllers_extra : ?[Principal];
+      voucher_code : Text;
+    }
+  ) : async {
+    canister_id : Principal;
+    registered : Bool;
+    error : ?Text;
+  } {
+    // 1) Verify voucher valid SEBELUM create canister (save cycles!)
+    let isValid = await PeridotRegistry.is_voucher_valid(args.voucher_code);
+    if (not isValid) {
+      return {
+        canister_id = Principal.fromText("aaaaa-aa"); // placeholder
+        registered = false;
+        error = ?"Invalid or expired voucher code";
+      };
+    };
+
+    // 2) Create PGC1 canister
+    let cid = await createPGC1({
+      caller = caller;
+      meta = args.meta;
+      controllers_extra = args.controllers_extra;
+    });
+
+    // 3) Register dengan voucher
+    let record : GRT.CreateGameRecord = { canister_id = cid };
+    let res = await PeridotRegistry.redeem_voucher(args.voucher_code, record);
+
+    switch (res) {
+      case (#ok _rec) { { canister_id = cid; registered = true; error = null } };
+      case (#err e) {
+        {
+          canister_id = cid;
+          registered = false;
+          error = ?debug_show (e);
+        };
+      };
+    };
+  };
+
+  // ===== CREATE PGC1 CANISTER =====
+  private func createPGC1(
+    args : {
+      caller : Principal;
+      meta : IPGC1.init; // 🔹 Tipe baru
       controllers_extra : ?[Principal];
     }
   ) : async Principal {
-    assert (await isHaveAuthority(caller));
-
-    // Set Controllers for PGL Standard
-    let (regP, hubP) : (Principal, Principal) = switch (controllers.registry, controllers.hub) {
-      case (null, null) Debug.trap("Factory: controllers principal not set");
-      case (null, ?_h) Debug.trap("Factory: registry principal not set");
-      case (?_r, null) Debug.trap("Factory: hub principal not set");
-      case (?r, ?h) (r, h); // <- r & h bertipe Principal (bukan ?Principal)
-    };
-
-    let pgl1_controllers : T.Controllers = {
-      registry = ?regP;
-      hub = ?hubP;
-      developer = ?caller;
+    let regP : Principal = switch (controllers.registry) {
+      case (null) Debug.trap("Factory: registry principal not set");
+      case (?r) (r);
     };
 
     // Determine cycles
     let cycles_amount = _defaultCycles;
 
-    // 1) Create PGL1 canister with cycles
+    // 1) Create PGC1 canister with cycles
     Cycles.add(cycles_amount);
-    let pgl1_actor = await PGL1.PGL1Ledger(?args.meta);
-    let canister_id = Principal.fromActor(pgl1_actor);
+    // 🔹 Panggil PGC1 dengan 7 argumen (termasuk tokenCanister)
+    let pgc1_actor = await PGC1.PGC1(
+      args.meta.initGameId,
+      args.meta.initName,
+      args.meta.initDescription,
+      args.meta.initMetadataURI,
+      args.meta.initPrice,
+      args.meta.initMaxSupply,
+      args.meta.initTokenCanister, // 🔹 Ini yang baru!
+    );
+    let canister_id = Principal.fromActor(pgc1_actor);
 
     // 2) Update controllers
-    let baseCtrls : [Principal] = [Principal.fromActor(this), regP, hubP, caller];
+    let baseCtrls : [Principal] = [Principal.fromActor(this), regP, args.caller];
     let ctrls = switch (args.controllers_extra) {
       case (null) baseCtrls;
       case (?xs) Array.append(baseCtrls, xs);
@@ -140,50 +208,40 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       Debug.trap("Failed to update settings: " # Error.message(e));
     };
 
-    // 3) Initialize PGL1
-    let pgl1 : PGL1.PGL1Ledger = pgl1_actor;
-
-    try {
-      ignore await pgl1.set_controllers(pgl1_controllers);
-    } catch (e) {
-      Debug.trap("Failed to set registry: " # Error.message(e));
-    };
-
-    // 5) Track created canister
-    _createdPGL1s := Array.append(_createdPGL1s, [(canister_id, args.meta)]);
+    // 3) Track created canister
+    _createdPGC1s := Array.append(_createdPGC1s, [(canister_id, args.meta)]);
 
     canister_id;
   };
 
   // ===== Query Functions =====
-  public query func get_created_pgl1s() : async [(Principal, T.PGLContractMeta)] {
-    _createdPGL1s;
+  public query func get_created_pgc1s() : async [(Principal, IPGC1.init)] {
+    _createdPGC1s;
   };
 
-  public query func get_pgl1_count() : async Nat {
-    _createdPGL1s.size();
+  public query func get_pgc1_count() : async Nat {
+    _createdPGC1s.size();
   };
 
-  // ===== Get specific PGL1 info =====
-  public shared func get_pgl1_info(canister_id : Principal) : async {
+  public shared func get_pgc1_info(canister_id : Principal) : async {
     game_id : Text;
     name : Text;
-    controllers : T.Controllers;
+    owner : Principal;
   } {
-    let pgl1 : actor {
-      pgl1_game_id : () -> async Text;
-      pgl1_name : () -> async Text;
-      get_controllers : () -> async T.Controllers;
+    let pgc1 : actor {
+      getGameId : () -> async Text;
+      getName : () -> async Text;
+      getOwner : () -> async Principal;
     } = actor (Principal.toText(canister_id));
 
     {
-      game_id = await pgl1.pgl1_game_id();
-      name = await pgl1.pgl1_name();
-      controllers = await pgl1.get_controllers();
+      game_id = await pgc1.getGameId();
+      name = await pgc1.getName();
+      owner = await pgc1.getOwner();
     };
   };
 
-  public shared ({ caller }) func list_my_pgl1_min(
+  public shared ({ caller }) func list_my_pgc1_min(
     only_unregistered : ?Bool
   ) : async [{
     canister_id : Principal;
@@ -203,34 +261,25 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       registered : Bool;
     }] = [];
 
-    for ((cid, _) in _createdPGL1s.vals()) {
-      let pgl1 : actor {
-        get_controllers : () -> async T.Controllers;
-        pgl1_game_id : () -> async Text;
-        pgl1_name : () -> async Text;
+    for ((cid, _) in _createdPGC1s.vals()) {
+      let pgc1 : actor {
+        getOwner : () -> async Principal;
+        getName : () -> async Text;
+        getGameId : () -> async Text;
       } = actor (Principal.toText(cid));
 
-      let ctrls = await pgl1.get_controllers();
+      let owner = await pgc1.getOwner();
 
-      // hanya milik developer = caller
-      switch (ctrls.developer) {
-        case (?dev) {
-          if (Principal.equal(dev, caller)) {
-            let isReg = await PeridotRegistry.isGameRegistered(cid);
-            if (onlyUnreg and isReg) {
-              // skip yang sudah registered
-            } else {
-              let gid = await pgl1.pgl1_game_id();
-              let nm = await pgl1.pgl1_name();
-              out := Array.append(out, [{ canister_id = cid; game_id = gid; name = nm; registered = isReg }]);
-            };
-          };
+      if (Principal.equal(owner, caller)) {
+        let isReg = await PeridotRegistry.isGameRegistered(cid);
+        if (not (onlyUnreg and isReg)) {
+          let nm = await pgc1.getName();
+          let gid = await pgc1.getGameId();
+          out := Array.append(out, [{ canister_id = cid; game_id = gid; name = nm; registered = isReg }]);
         };
-        case (null) {};
       };
     };
 
     out;
-  }
-
+  };
 };
