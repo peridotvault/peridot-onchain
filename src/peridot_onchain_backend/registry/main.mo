@@ -6,7 +6,6 @@ import Principal "mo:base/Principal";
 import Nat "mo:base/Nat";
 import Nat8 "mo:base/Nat8";
 import Blob "mo:base/Blob";
-import Nat32 "mo:base/Nat32";
 import Array "mo:base/Array";
 import Random "mo:base/Random";
 import Buffer "mo:base/Buffer";
@@ -44,12 +43,12 @@ persistent actor PeridotRegistry {
 
   // SNAPSHOTS ======================================================
   private var gameRecordEntries : [(Core.GameId, GameRecordType)] = [];
-  private var activeVoucherEntries : [Nat32] = [];
+  private var activeVoucherEntries : [Text] = [];
   private var adminEntries : [Principal] = [];
 
   // STATE ==========================================================
   private transient var gameRecords : GRT.GameRecordHashMap = HashMap.HashMap(8, Text.equal, Text.hash);
-  private transient var activeVouchers : HashMap.HashMap<Nat32, ()> = HashMap.HashMap(32, Nat32.equal, func(x : Nat32) : Nat32 { x });
+  private transient var activeVouchers : HashMap.HashMap<Text, ()> = HashMap.HashMap(32, Text.equal, Text.hash);
 
   // SYSTEM =========================================================
   system func preupgrade() {
@@ -174,6 +173,10 @@ persistent actor PeridotRegistry {
     };
   };
 
+  public query func get_governor() : async ?Principal {
+    gov;
+  };
+
   public shared ({ caller }) func set_payment_config(
     token : Principal,
     usd_units : Nat,
@@ -249,7 +252,6 @@ persistent actor PeridotRegistry {
     count : Nat,
     codeLength : ?Nat,
   ) : async ApiResponse<[Text]> {
-    // Check authority (governor OR admin)
     if (not hasVoucherAuthority(caller)) {
       return #err(#NotAuthorized("Only governor or admin can generate vouchers"));
     };
@@ -259,48 +261,66 @@ persistent actor PeridotRegistry {
     };
 
     let len = switch (codeLength) {
-      case (?l) if (l < 6 or l > 20) { 12 } else { l };
+      case (?l) if (l < 6 or l > 20) 12 else l;
       case null 12;
     };
 
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let generatedCodes = Buffer.Buffer<Text>(count);
-    let seed = await Random.blob(); // Get random seed from IC
-
+    let maxAttempts = count * 20; // naikkan sedikit
     var attempts = 0;
-    let maxAttempts = count * 10; // Prevent infinite loop
 
     label generation while (generatedCodes.size() < count and attempts < maxAttempts) {
       attempts += 1;
 
-      // Generate random code dengan seed yang berubah
-      let seedWithAttempt = Blob.fromArray(
-        Array.append(Blob.toArray(seed), [Nat8.fromNat(attempts % 256)])
-      );
-      let code = generateRandomCode(len, seedWithAttempt);
-      let codeHash = Text.hash(code);
+      // ✅ Ambil random blob baru setiap iterasi
+      let randomBlob = await Random.blob();
+      var randomBytes = Blob.toArray(randomBlob);
+      var code = "";
 
-      // Check uniqueness
-      if (activeVouchers.get(codeHash) == null) {
-        // Check tidak duplikat dalam batch ini
+      var i = 0;
+      var byteIndex = 0;
+      while (i < len) {
+        if (byteIndex >= randomBytes.size()) {
+          // Jika kehabisan byte, ambil baru
+          let extra = await Random.blob();
+          randomBytes := Array.append(randomBytes, Blob.toArray(extra));
+        };
+
+        let byte = randomBytes[byteIndex];
+        let index = Nat8.toNat(byte) % chars.size();
+        code #= Text.fromChar(Text.toArray(chars)[index]);
+        byteIndex += 1;
+        i += 1;
+      };
+
+      // Cek duplikat (di state + di batch)
+      if (activeVouchers.get(code) == null) {
         var isDuplicate = false;
-        for (existingCode in generatedCodes.vals()) {
-          if (Text.equal(code, existingCode)) {
+        for (c in generatedCodes.vals()) {
+          if (Text.equal(c, code)) {
             isDuplicate := true;
           };
         };
-
         if (not isDuplicate) {
-          activeVouchers.put(codeHash, ());
+          activeVouchers.put(code, ());
           generatedCodes.add(code);
         };
       };
     };
 
     if (generatedCodes.size() < count) {
-      return #err(#ValidationError("Failed to generate unique vouchers, try again"));
+      return #err(#ValidationError("Failed to generate unique vouchers. Try smaller count or longer code length."));
     };
 
     #ok(Buffer.toArray(generatedCodes));
+  };
+
+  public shared query ({ caller }) func list_vouchers() : async ApiResponse<[Text]> {
+    if (not hasVoucherAuthority(caller)) {
+      return #err(#NotAuthorized("Only governor or admin can list vouchers"));
+    };
+    #ok(Iter.toArray(activeVouchers.keys()));
   };
 
   // ================================================================
@@ -318,14 +338,12 @@ persistent actor PeridotRegistry {
       return #err(#ValidationError("Voucher code must be at least 4 characters"));
     };
 
-    let codeHash = Text.hash(code);
-
     // Check if voucher already exists
-    if (activeVouchers.get(codeHash) != null) {
+    if (activeVouchers.get(code) != null) {
       return #err(#ValidationError("Voucher code already exists"));
     };
 
-    activeVouchers.put(codeHash, ());
+    activeVouchers.put(code, ());
     #ok(true);
   };
 
@@ -334,10 +352,9 @@ persistent actor PeridotRegistry {
     code : Text,
     createGameRecord : GRT.CreateGameRecord,
   ) : async ApiResponse<GameRecordType> {
-    let codeHash = Text.hash(code);
 
     // 1️⃣ Cek apakah voucher aktif
-    if (activeVouchers.get(codeHash) == null) {
+    if (activeVouchers.get(code) == null) {
       return #err(#NotFound("Invalid or expired voucher"));
     };
 
@@ -346,9 +363,11 @@ persistent actor PeridotRegistry {
       getOwner : () -> async Principal;
     } = actor (Principal.toText(createGameRecord.canister_id));
 
+    ignore activeVouchers.remove(code);
     let owner = try {
       await pgc1.getOwner();
     } catch (_) {
+      activeVouchers.put(code, ());
       return #err(#ValidationError("Failed to verify canister ownership"));
     };
 
@@ -366,7 +385,6 @@ persistent actor PeridotRegistry {
     // 4️⃣ HANYA hapus voucher jika registrasi berhasil
     switch (registerResult) {
       case (#ok gameRecord) {
-        ignore activeVouchers.remove(codeHash);
         #ok(gameRecord);
       };
       case (#err e) {
@@ -382,9 +400,7 @@ persistent actor PeridotRegistry {
       return #err(#NotAuthorized("Only governor or admin can revoke vouchers"));
     };
 
-    let codeHash = Text.hash(code);
-
-    switch (activeVouchers.remove(codeHash)) {
+    switch (activeVouchers.remove(code)) {
       case (?_) #ok(true);
       case null #err(#NotFound("Voucher not found"));
     };
@@ -392,8 +408,7 @@ persistent actor PeridotRegistry {
 
   // 🔹 Query voucher status
   public query func is_voucher_valid(code : Text) : async Bool {
-    let codeHash = Text.hash(code);
-    activeVouchers.get(codeHash) != null;
+    activeVouchers.get(code) != null;
   };
 
   // 🔹 List active vouchers count (governor OR admin)
