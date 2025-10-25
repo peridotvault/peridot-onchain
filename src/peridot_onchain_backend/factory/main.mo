@@ -158,6 +158,15 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
     };
   };
 
+  func operation() : async () {
+    Debug.print("Operation balance: " # debug_show (Cycles.balance()));
+    Debug.print("Operation available: " # debug_show (Cycles.available()));
+    let obtained = Cycles.accept<system>(_defaultCycles);
+    Debug.print("Operation obtained: " # debug_show (obtained));
+    Debug.print("Operation balance: " # debug_show (Cycles.balance()));
+    Debug.print("Operation available: " # debug_show (Cycles.available()));
+  };
+
   // ===== CREATE PGC1 CANISTER =====
   private func createPGC1(
     args : {
@@ -175,7 +184,9 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
     let cycles_amount = _defaultCycles;
 
     // 1) Create PGC1 canister with cycles
-    Cycles.add(cycles_amount);
+    Cycles.add<system>(cycles_amount);
+    await operation();
+
     // 🔹 Panggil PGC1 dengan 7 argumen (termasuk tokenCanister)
     let pgc1_actor = await PGC1.PGC1(
       args.meta.initGameId,

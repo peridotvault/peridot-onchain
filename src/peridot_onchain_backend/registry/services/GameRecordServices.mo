@@ -6,6 +6,7 @@ import Core "../../__core__/Core";
 import Time "mo:base/Time";
 import Principal "mo:base/Principal";
 import Iter "mo:base/Iter";
+import Array "mo:base/Array";
 import TokenLedger "../../__core__/shared/TokenLedger";
 import PaymentService "../../__core__/services/Purchase";
 
@@ -175,22 +176,17 @@ module GameRecordServices {
     };
   };
 
-  public func getGameByDeveloperId(
+  public func getGamesByDeveloper(
     gameRecords : GRT.GameRecordHashMap,
     dev : Principal,
-    gameId : Core.GameId,
-  ) : async ApiResponse<GameRecordType> {
-    switch (gameRecords.get(gameId)) {
-      case (null) {
-        #err(#NotFound("Game with Game Id " # gameId # " not registered"));
-      };
-      case (?game) {
-        if (Principal.equal(game.developer, dev)) {
-          #ok(game);
-        } else {
-          #err(#Unauthorized("You don't have access to get the Game Record"));
-        };
+  ) : ApiResponse<[GameRecordType]> {
+    // filter semua values yang developer-nya == dev
+    var buf : [GameRecordType] = [];
+    for (rec in gameRecords.vals()) {
+      if (Principal.equal(rec.developer, dev)) {
+        buf := Array.append(buf, [rec]);
       };
     };
+    #ok(buf);
   };
 };

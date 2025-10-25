@@ -213,40 +213,6 @@ persistent actor PeridotRegistry {
   // Voucher - Random Code Generator ================================
   // ================================================================
 
-  // 🔹 Generate random alphanumeric code
-  private func generateRandomCode(length : Nat, seed : Blob) : Text {
-    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let charsArray = Text.toArray(chars);
-    let charsLen = charsArray.size();
-
-    var code = "";
-    var currentSeed = seed;
-
-    var i = 0;
-    while (i < length) {
-      let rand = Random.Finite(currentSeed);
-
-      switch (rand.byte()) {
-        case (?byte) {
-          let index = Nat8.toNat(byte) % charsLen;
-          let char = charsArray[index];
-          code #= Text.fromChar(char);
-
-          // Update seed untuk iterasi berikutnya
-          currentSeed := Blob.fromArray([byte]);
-        };
-        case null {
-          // Fallback jika random gagal
-          code #= "X";
-        };
-      };
-
-      i += 1;
-    };
-
-    code;
-  };
-
   // 🔹 Generate multiple unique voucher codes
   public shared ({ caller }) func generate_vouchers(
     count : Nat,
@@ -451,8 +417,8 @@ persistent actor PeridotRegistry {
     GameRecordServices.getAllGameRecordLimit(gameRecords, start, limit);
   };
 
-  public shared func getGameByDeveloperId(dev : Principal, gameId : Core.GameId) : async ApiResponse<GameRecordType> {
-    await GameRecordServices.getGameByDeveloperId(gameRecords, dev, gameId);
+  public query func getGamesByDeveloper(dev : Principal) : async ApiResponse<[GameRecordType]> {
+    GameRecordServices.getGamesByDeveloper(gameRecords, dev);
   };
 
 };
