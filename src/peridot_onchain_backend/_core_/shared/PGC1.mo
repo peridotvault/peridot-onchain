@@ -196,7 +196,7 @@ shared ({ caller }) persistent actor class PGC1(
         purchases.put(
           caller,
           {
-            time = t; // IPGC1.Timestamp = Time.Time? -> kita pakai Nat64, lihat Types di bawah
+            time = t;
             amount = price;
             tokenUsed = tokenCanister;
           },
