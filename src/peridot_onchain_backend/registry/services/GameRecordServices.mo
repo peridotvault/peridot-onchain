@@ -1,13 +1,13 @@
 // File: services/GameRecordServices.mo
 import GRT "../types/GameRecordTypes";
 
-import Helpers "../../_core_/Helpers";
-import Core "../../_core_/Core";
+import Helpers "../../__core__/Helpers";
+import Core "../../__core__/Core";
 import Time "mo:base/Time";
 import Principal "mo:base/Principal";
 import Iter "mo:base/Iter";
-import TokenLedger "../../_core_/shared/TokenLedger";
-import PaymentService "../../_core_/services/Purchase";
+import TokenLedger "../../__core__/shared/TokenLedger";
+import PaymentService "../../__core__/services/Purchase";
 
 module GameRecordServices {
   type ApiResponse<T> = Core.ApiResponse<T>;

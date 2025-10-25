@@ -1,6 +1,6 @@
 import HashMap "mo:base/HashMap";
 import Principal "mo:base/Principal";
-import Core "../../_core_/Core";
+import Core "../../__core__/Core";
 
 module GameRecordTypes {
   public type GameRecordHashMap = HashMap.HashMap<Core.GameId, GameRecord>;

@@ -7,9 +7,10 @@ import Debug "mo:base/Debug";
 import Error "mo:base/Error";
 
 // 🔹 GANTI: Impor tipe PGC1 yang benar
-import IPGC1 "../_core_/types/IPGC1";
-import PGC1 "../_core_/shared/PGC1";
+import IPGC1 "../__core__/types/IPGC1";
+import PGC1 "../__core__/shared/PGC1";
 import GRT "../registry/types/GameRecordTypes";
+import Core "../__core__/Core";
 
 /*
     - update controller & admin
@@ -184,6 +185,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       args.meta.initPrice,
       args.meta.initMaxSupply,
       args.meta.initTokenCanister, // 🔹 Ini yang baru!
+      Principal.fromText(Core.PeridotAccount),
     );
     let canister_id = Principal.fromActor(pgc1_actor);
 

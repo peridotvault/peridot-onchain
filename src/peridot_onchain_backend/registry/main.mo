@@ -1,4 +1,4 @@
-import Core "../_core_/Core";
+import Core "../__core__/Core";
 import Text "mo:base/Text";
 import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
@@ -11,7 +11,7 @@ import Random "mo:base/Random";
 import Buffer "mo:base/Buffer";
 import GRT "types/GameRecordTypes";
 import GameRecordServices "services/GameRecordServices";
-import TokenLedger "../_core_/shared/TokenLedger";
+import TokenLedger "../__core__/shared/TokenLedger";
 
 persistent actor PeridotRegistry {
 

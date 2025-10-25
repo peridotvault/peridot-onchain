@@ -1,4 +1,4 @@
-// Types.mo — PGL-1 Core Types (v1.0.0)
+// Types.mo — PGC-1 Core Types (v1.1.0)
 // Gunakan: import T "./Types";
 
 import Principal "mo:base/Principal";
@@ -7,6 +7,7 @@ import Time "mo:base/Time";
 
 module IPGC1 {
   public type Timestamp = Time.Time;
+
   public type Platform = {
     #web;
     #windows;
@@ -45,24 +46,25 @@ module IPGC1 {
     tokenUsed : Principal; // canister ID token yang digunakan
   };
 
-  // ========== STABLE STATE ==========
+  // ========== INIT ARGS ==========
   public type init = {
     initGameId : Text;
     initName : Text;
     initDescription : Text;
     initMetadataURI : Text;
-    initPrice : Nat64;
-    initMaxSupply : Nat64;
+    initPrice : Nat64; // 🔹 0 = FREE game
+    initMaxSupply : Nat64; // 🔹 0 = unlimited
     initTokenCanister : Principal;
   };
 
+  // ========== STABLE STATE ==========
   public type StableState = {
-    gameId : Text; // bytes32 → 32-byte Blob
+    gameId : Text;
     maxSupply : Nat64;
     name : Text;
     description : Text;
     published : Bool;
-    price : Nat64; // dalam e8s
+    price : Nat64; // 🔹 0 = FREE
 
     // Pembelian
     purchases : HashMap.HashMap<Principal, Purchase>;
@@ -70,6 +72,7 @@ module IPGC1 {
     lifetimePurchases : Nat64;
     lifetimeRevenue : Nat64;
     refundableBalance : Nat64;
+    withdrawnBalance : Nat64; // 🔹 NEW: Total yang sudah di-withdraw
 
     // Build & Hardware
     manifests : HashMap.HashMap<Platform, [Manifest]>;
@@ -78,7 +81,35 @@ module IPGC1 {
     metadataURI : Text;
 
     owner : Principal;
+    vaultCanister : Principal; // 🔹 NEW: PeridotVault untuk revenue sharing
   };
 
+  // ========== RESULT TYPES ==========
   public type Result<Ok, Err> = { #ok : Ok; #err : Err };
+
+  // Purchase result dengan status jelas
+  public type PurchaseResult = {
+    #success : { txIndex : Nat; timestamp : Timestamp };
+    #alreadyOwned;
+    #notPublished;
+    #soldOut;
+    #paymentFailed : Text;
+    #insufficientAllowance;
+  };
+
+  // Refund result
+  public type RefundResult = {
+    #success : { amount : Nat64 };
+    #notOwned;
+    #windowClosed;
+    #transferFailed : Text;
+  };
+
+  // Withdraw result dengan vault share info
+  public type WithdrawResult = {
+    #success : { amount : Nat; vaultShare : Nat };
+    #unauthorized;
+    #noBalance;
+    #transferFailed : Text;
+  };
 };

@@ -1,4 +1,4 @@
-// PGC1.mo
+// PGC1.mo - Fixed Version
 import Array "mo:base/Array";
 import HashMap "mo:base/HashMap";
 import Principal "mo:base/Principal";
@@ -9,7 +9,7 @@ import Nat "mo:base/Nat";
 import Text "mo:base/Text";
 import Iter "mo:base/Iter";
 import Option "mo:base/Option";
-import Error "mo:base/Error";
+import Result "mo:base/Result";
 import IPGC1 "./../types/IPGC1";
 import TokenLedger "TokenLedger";
 import PaymentService "./../services/Purchase";
@@ -22,6 +22,7 @@ shared ({ caller }) persistent actor class PGC1(
   initPrice : Nat64,
   initMaxSupply : Nat64,
   initTokenCanister : Principal,
+  initVaultCanister : Principal, // 🔹 TAMBAHAN: PeridotVault
 ) = this {
 
   // ========== TYPES ==========
@@ -31,9 +32,33 @@ shared ({ caller }) persistent actor class PGC1(
   type Purchase = IPGC1.Purchase;
   type Timestamp = IPGC1.Timestamp;
 
+  // 🔹 Return types yang jelas
+  public type PurchaseResult = {
+    #success : { txIndex : Nat; timestamp : Timestamp };
+    #alreadyOwned;
+    #notPublished;
+    #soldOut;
+    #paymentFailed : Text;
+    #insufficientAllowance;
+  };
+
+  public type RefundResult = {
+    #success : { amount : Nat64 };
+    #notOwned;
+    #windowClosed;
+    #transferFailed : Text;
+  };
+
+  public type WithdrawResult = {
+    #success : { amount : Nat; vaultShare : Nat };
+    #unauthorized;
+    #noBalance;
+    #transferFailed : Text;
+  };
+
   // ========== CONSTANTS ==========
-  // pakai Nat (bukan Int) agar aman untuk operasi Nat
-  let REFUND_WINDOW_NANOS : Time.Time = 24 * 60 * 60 * 1_000_000_000;
+  let REFUND_WINDOW_NANOS : Time.Time = 8 * 60 * 60 * 1_000_000_000; // 8 Hours
+  let VAULT_FEE_PERCENTAGE : Nat = 10; // 10% untuk PeridotVault
 
   // ========== STABLE STATE ==========
   let gameId : Text = initGameId;
@@ -43,14 +68,16 @@ shared ({ caller }) persistent actor class PGC1(
   var published : Bool = false;
   var price : Nat64 = initPrice;
   let tokenCanister : Principal = initTokenCanister;
+  let vaultCanister : Principal = initVaultCanister;
   var totalPurchased : Nat64 = 0;
   var lifetimePurchases : Nat64 = 0;
   var lifetimeRevenue : Nat64 = 0;
   var refundableBalance : Nat64 = 0;
+  var withdrawnBalance : Nat64 = 0; // 🔹 Track total withdrawn
   var metadataURI : Text = initMetadataURI;
   let owner : Principal = caller;
 
-  // Stable collections (HARUS stable var)
+  // Stable collections
   var purchasesEntries : [(Principal, Purchase)] = [];
   var manifestsEntries : [(Platform, [Manifest])] = [];
   var liveManifestIndexEntries : [(Platform, Nat64)] = [];
@@ -78,11 +105,11 @@ shared ({ caller }) persistent actor class PGC1(
       case (#linux) 3;
       case (#android) 4;
       case (#ios) 5;
-      case (#other) 6; // beda dari #ios
+      case (#other) 6;
     };
   };
 
-  // Transient (non-stable) HashMap — dibangun ulang di postupgrade
+  // Transient HashMaps
   transient let purchases = HashMap.HashMap<Principal, Purchase>(32, Principal.equal, Principal.hash);
   transient let manifests = HashMap.HashMap<Platform, [Manifest]>(8, platformEqual, platformHash);
   transient let liveManifestIndex = HashMap.HashMap<Platform, Nat64>(8, platformEqual, platformHash);
@@ -118,13 +145,16 @@ shared ({ caller }) persistent actor class PGC1(
   public query func getDescription() : async Text { description };
   public query func isPublished() : async Bool { published };
   public query func getPrice() : async Nat64 { price };
+  public query func isFree() : async Bool { price == 0 }; // 🔹 NEW
   public query func getMaxSupply() : async Nat64 { maxSupply };
   public query func getTotalPurchased() : async Nat64 { totalPurchased };
   public query func getLifetimeRevenue() : async Nat64 { lifetimeRevenue };
   public query func getRefundableBalance() : async Nat64 { refundableBalance };
+  public query func getWithdrawnBalance() : async Nat64 { withdrawnBalance }; // 🔹 NEW
   public query func getMetadataURI() : async Text { metadataURI };
   public query func getOwner() : async Principal { owner };
   public query func getTokenCanister() : async Principal { tokenCanister };
+  public query func getVaultCanister() : async Principal { vaultCanister }; // 🔹 NEW
 
   public query func hasAccess(user : Principal) : async Bool {
     switch (purchases.get(user)) { case null false; case (?_) true };
@@ -167,32 +197,58 @@ shared ({ caller }) persistent actor class PGC1(
   };
 
   // ========== UPDATE FUNCTIONS ==========
-  public shared ({ caller }) func purchase() : async () {
-    assert published;
-    assert Option.isNull(purchases.get(caller));
-    if (maxSupply > 0) { assert totalPurchased < maxSupply };
 
-    // siapkan actor ledger dari principal token
+  // 🔹 FIXED: Purchase dengan return type jelas + support FREE games
+  public shared ({ caller }) func purchase() : async PurchaseResult {
+    // Validasi: game harus published
+    if (not published) { return #notPublished };
+
+    // Validasi: user belum punya akses
+    if (Option.isSome(purchases.get(caller))) { return #alreadyOwned };
+
+    // Validasi: cek supply (jika bukan unlimited)
+    if (maxSupply > 0 and totalPurchased >= maxSupply) { return #soldOut };
+
+    let t = Time.now();
+
+    // 🔹 CASE 1: Game FREE (price = 0) — langsung grant akses
+    if (price == 0) {
+      purchases.put(
+        caller,
+        {
+          time = t;
+          amount = 0;
+          tokenUsed = tokenCanister;
+        },
+      );
+      totalPurchased += 1;
+      lifetimePurchases += 1;
+      return #success({ txIndex = 0; timestamp = t });
+    };
+
+    // 🔹 CASE 2: Game PAID — lakukan pembayaran
     let ledger : TokenLedger.Self = actor (Principal.toText(tokenCanister));
-
-    // escrow ke canister sendiri (refund-friendly)
     let merchant : Principal = Principal.fromActor(this);
     let spender : Principal = merchant;
 
-    // lakukan pembayaran lewat PaymentService (cek allowance + transfer_from)
     let payRes = await PaymentService.pay(
       ledger,
       caller,
       merchant,
       spender,
-      Nat64.toNat(price) // PaymentService expects Nat
+      Nat64.toNat(price),
     );
 
     switch (payRes) {
-      case (#err e) { throw Error.reject("Payment failed: " # debug_show e) };
-      case (#ok _txIndex) {
-        // update state
-        let t = Time.now();
+      case (#err e) {
+        switch (e) {
+          case (#NotAuthorized(_msg)) { return #insufficientAllowance };
+          case (#StorageError(msg)) { return #paymentFailed(msg) };
+          case _ { return #paymentFailed("Unknown error") };
+        };
+      };
+      case (#ok txIndex) {
+        // Simpan purchase record
         purchases.put(
           caller,
           {
@@ -205,27 +261,31 @@ shared ({ caller }) persistent actor class PGC1(
         lifetimePurchases += 1;
         lifetimeRevenue += price;
         refundableBalance += price;
-        return;
+        return #success({ txIndex = txIndex; timestamp = t });
       };
     };
   };
 
-  public shared ({ caller }) func refund() : async () {
+  // 🔹 FIXED: Refund dengan return type jelas
+  public shared ({ caller }) func refund() : async RefundResult {
     let p = switch (purchases.get(caller)) {
-      case null { throw Error.reject("Not purchased") };
+      case null { return #notOwned };
       case (?v) v;
     };
+
+    // Free game tidak bisa refund
+    if (p.amount == 0) { return #notOwned };
 
     let purchasedAt : Timestamp = p.time;
     let now : Timestamp = Time.now();
     if (now > purchasedAt + REFUND_WINDOW_NANOS) {
-      throw Error.reject("Refund window closed");
+      return #windowClosed;
     };
 
     assert totalPurchased > 0;
     assert refundableBalance >= p.amount;
 
-    // 🔹 KIRIM DANA DULU (jangan ubah state dulu!)
+    // Transfer refund dulu
     let ledger : TokenLedger.Self = actor (Principal.toText(tokenCanister));
     let r = await ledger.icrc1_transfer({
       from_subaccount = null;
@@ -238,23 +298,25 @@ shared ({ caller }) persistent actor class PGC1(
 
     switch (r) {
       case (#Err e) {
-        // 🔹 TIDAK PERLU ROLLBACK — state belum diubah!
-        throw Error.reject("Refund failed: " # debug_show e);
+        return #transferFailed(debug_show e);
       };
       case (#Ok _id) {
-        // 🔹 BARU UBAH STATE SETELAH SUKSES
+        // Update state setelah sukses
         ignore purchases.remove(caller);
         totalPurchased -= 1;
         refundableBalance -= p.amount;
-        return;
+        return #success({ amount = p.amount });
       };
     };
   };
 
-  public shared ({ caller }) func withdrawAll() : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
+  // 🔹 FIXED: Withdraw dengan revenue sharing 10% ke PeridotVault
+  public shared ({ caller }) func withdrawAll() : async WithdrawResult {
+    if (not isOwner(caller)) { return #unauthorized };
 
     let ledger : TokenLedger.Self = actor (Principal.toText(tokenCanister));
+
+    // Hitung balance yang bisa ditarik
     let balNat : Nat = await ledger.icrc1_balance_of({
       owner = Principal.fromActor(this);
       subaccount = null;
@@ -264,27 +326,57 @@ shared ({ caller }) persistent actor class PGC1(
       balNat - refundableNat;
     } else { 0 };
 
-    if (withdrawableNat == 0) { throw Error.reject("No withdrawable balance") };
+    if (withdrawableNat == 0) { return #noBalance };
 
-    let w = await ledger.icrc1_transfer({
+    // 🔹 HITUNG: 10% untuk Vault, 90% untuk Developer
+    let vaultShare : Nat = (withdrawableNat * VAULT_FEE_PERCENTAGE) / 100;
+    let developerShare : Nat = withdrawableNat - vaultShare;
+
+    // 1️⃣ Kirim ke PeridotVault (10%)
+    if (vaultShare > 0) {
+      let vaultTransfer = await ledger.icrc1_transfer({
+        from_subaccount = null;
+        to = { owner = vaultCanister; subaccount = null };
+        amount = vaultShare;
+        fee = null;
+        memo = null;
+        created_at_time = null;
+      });
+
+      switch (vaultTransfer) {
+        case (#Err e) {
+          return #transferFailed("Vault transfer failed: " # debug_show e);
+        };
+        case (#Ok _) {};
+      };
+    };
+
+    // 2️⃣ Kirim ke Developer (90%)
+    let devTransfer = await ledger.icrc1_transfer({
       from_subaccount = null;
       to = { owner = owner; subaccount = null };
-      amount = withdrawableNat;
+      amount = developerShare;
       fee = null;
       memo = null;
       created_at_time = null;
     });
 
-    switch (w) {
-      case (#Err e) { throw Error.reject("Withdraw failed: " # debug_show e) };
-      case (#Ok _) { return };
+    switch (devTransfer) {
+      case (#Err e) {
+        return #transferFailed("Developer transfer failed: " # debug_show e);
+      };
+      case (#Ok _) {
+        withdrawnBalance += Nat64.fromNat(withdrawableNat);
+        return #success({ amount = developerShare; vaultShare = vaultShare });
+      };
     };
   };
 
   // ========== MANAJEMEN (owner only) ==========
-  public shared ({ caller }) func setPrice(newPrice : Nat64) : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
+  public shared ({ caller }) func setPrice(newPrice : Nat64) : async Result.Result<(), Text> {
+    if (not isOwner(caller)) { return #err("Only owner") };
     price := newPrice;
+    #ok();
   };
 
   public shared ({ caller }) func appendBuild(
@@ -293,10 +385,10 @@ shared ({ caller }) persistent actor class PGC1(
     sizeBytes : Nat64,
     checksum : Blob,
     createdAt : IPGC1.Timestamp,
-  ) : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
-    assert Text.size(version) > 0;
-    assert checksum.size() == 32;
+  ) : async Result.Result<(), Text> {
+    if (not isOwner(caller)) { return #err("Only owner") };
+    if (Text.size(version) == 0) { return #err("Version cannot be empty") };
+    if (checksum.size() != 32) { return #err("Checksum must be 32 bytes") };
 
     let existing = switch (manifests.get(platform)) {
       case null [];
@@ -304,6 +396,7 @@ shared ({ caller }) persistent actor class PGC1(
     };
     let newManifest : Manifest = { version; sizeBytes; checksum; createdAt };
     manifests.put(platform, Array.append(existing, [newManifest]));
+    #ok();
   };
 
   public shared ({ caller }) func setHardware(
@@ -313,36 +406,44 @@ shared ({ caller }) persistent actor class PGC1(
     memoryMB : Nat32,
     storageMB : Nat32,
     additionalNotes : Text,
-  ) : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
+  ) : async Result.Result<(), Text> {
+    if (not isOwner(caller)) { return #err("Only owner") };
     hardware.put(platform, { processor; graphics; memoryMB; storageMB; additionalNotes });
+    #ok();
   };
 
-  public shared ({ caller }) func setLiveVersion(platform : Platform, manifestIndex : Nat64) : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
+  public shared ({ caller }) func setLiveVersion(platform : Platform, manifestIndex : Nat64) : async Result.Result<(), Text> {
+    if (not isOwner(caller)) { return #err("Only owner") };
     let list = switch (manifests.get(platform)) { case null []; case (?m) m };
-    assert Nat64.toNat(manifestIndex) < list.size();
+    if (Nat64.toNat(manifestIndex) >= list.size()) {
+      return #err("Invalid manifest index");
+    };
     liveManifestIndex.put(platform, manifestIndex);
+    #ok();
   };
 
-  public shared ({ caller }) func setPublished(isPublished : Bool) : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
+  public shared ({ caller }) func setPublished(isPublished : Bool) : async Result.Result<(), Text> {
+    if (not isOwner(caller)) { return #err("Only owner") };
     published := isPublished;
+    #ok();
   };
 
-  public shared ({ caller }) func setMetadataURI(uri : Text) : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
+  public shared ({ caller }) func setMetadataURI(uri : Text) : async Result.Result<(), Text> {
+    if (not isOwner(caller)) { return #err("Only owner") };
     metadataURI := uri;
+    #ok();
   };
 
-  public shared ({ caller }) func setName(newName : Text) : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
-    assert Text.size(newName) > 0;
+  public shared ({ caller }) func setName(newName : Text) : async Result.Result<(), Text> {
+    if (not isOwner(caller)) { return #err("Only owner") };
+    if (Text.size(newName) == 0) { return #err("Name cannot be empty") };
     name := newName;
+    #ok();
   };
 
-  public shared ({ caller }) func setDescription(newDescription : Text) : async () {
-    if (not isOwner(caller)) { throw Error.reject("Only owner") };
+  public shared ({ caller }) func setDescription(newDescription : Text) : async Result.Result<(), Text> {
+    if (not isOwner(caller)) { return #err("Only owner") };
     description := newDescription;
+    #ok();
   };
 };
