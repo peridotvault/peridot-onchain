@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block known crawler traps if we ever add query-param heavy utilities
+Disallow: /assets/
+Disallow: /img/
+
+Sitemap: https://peridotvault.com/sitemap.xml
