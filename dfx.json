@@ -1,5 +1,14 @@
 {
   "canisters": {
+    "pgc1": {
+      "main": "src/peridot_onchain_backend/__core__/shared/PGC1.mo",
+      "type": "motoko",
+      "moc": {
+        "args": [
+          "--enhanced-orthogonal-persistence"
+        ]
+      }
+    },
     "peridot_registry": {
       "main": "src/peridot_onchain_backend/registry/main.mo",
       "type": "motoko",

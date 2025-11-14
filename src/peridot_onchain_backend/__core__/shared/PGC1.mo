@@ -14,7 +14,7 @@ import IPGC1 "./../types/IPGC1";
 import TokenLedger "TokenLedger";
 import PaymentService "./../services/Purchase";
 
-shared ({ caller }) persistent actor class PGC1(
+shared persistent actor class PGC1(
   initGameId : Text,
   initName : Text,
   initDescription : Text,
@@ -23,10 +23,12 @@ shared ({ caller }) persistent actor class PGC1(
   initMaxSupply : Nat64,
   initTokenCanister : Principal,
   initVaultCanister : Principal, // 🔹 TAMBAHAN: PeridotVault
+  initOwner : Principal,
 ) = this {
 
   // ========== TYPES ==========
   type Platform = IPGC1.Platform;
+  type StorageRef = IPGC1.StorageRef;
   type Manifest = IPGC1.Manifest;
   type Hardware = IPGC1.Hardware;
   type Purchase = IPGC1.Purchase;
@@ -75,7 +77,7 @@ shared ({ caller }) persistent actor class PGC1(
   var refundableBalance : Nat64 = 0;
   var withdrawnBalance : Nat64 = 0; // 🔹 Track total withdrawn
   var metadataURI : Text = initMetadataURI;
-  let owner : Principal = caller;
+  let owner : Principal = initOwner;
 
   // Stable collections
   var purchasesEntries : [(Principal, Purchase)] = [];
@@ -155,6 +157,22 @@ shared ({ caller }) persistent actor class PGC1(
   public query func getOwner() : async Principal { owner };
   public query func getTokenCanister() : async Principal { tokenCanister };
   public query func getVaultCanister() : async Principal { vaultCanister }; // 🔹 NEW
+  public query func getAllManifestsAllPlatforms() : async [(Platform, [Manifest])] {
+    Iter.toArray(manifests.entries());
+  };
+  public query func getAllLiveManifests() : async [(Platform, ?Manifest)] {
+    var out : [(Platform, ?Manifest)] = [];
+    for ((plat, mlist) in manifests.entries()) {
+      // live index default 0 jika belum diset
+      let idx : Nat64 = switch (liveManifestIndex.get(plat)) {
+        case (?i) i;
+        case null 0;
+      };
+      let m : ?Manifest = if (mlist.size() == 0) null else if (Nat64.toNat(idx) < mlist.size()) ?mlist[Nat64.toNat(idx)] else null;
+      out := Array.append(out, [(plat, m)]);
+    };
+    out;
+  };
 
   public query func hasAccess(user : Principal) : async Bool {
     switch (purchases.get(user)) { case null false; case (?_) true };
@@ -385,6 +403,7 @@ shared ({ caller }) persistent actor class PGC1(
     sizeBytes : Nat64,
     checksum : Blob,
     createdAt : IPGC1.Timestamp,
+    storage : StorageRef,
   ) : async Result.Result<(), Text> {
     if (not isOwner(caller)) { return #err("Only owner") };
     if (Text.size(version) == 0) { return #err("Version cannot be empty") };
@@ -394,7 +413,13 @@ shared ({ caller }) persistent actor class PGC1(
       case null [];
       case (?m) m;
     };
-    let newManifest : Manifest = { version; sizeBytes; checksum; createdAt };
+    let newManifest : Manifest = {
+      version;
+      sizeBytes;
+      checksum;
+      storage;
+      createdAt;
+    };
     manifests.put(platform, Array.append(existing, [newManifest]));
     #ok();
   };

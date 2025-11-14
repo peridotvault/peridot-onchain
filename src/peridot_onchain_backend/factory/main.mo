@@ -144,7 +144,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
 
     // 3) Register dengan voucher
     let record : GRT.CreateGameRecord = { canister_id = cid };
-    let res = await PeridotRegistry.redeem_voucher(args.voucher_code, record);
+    let res = await PeridotRegistry.redeem_voucher_for(caller, args.voucher_code, record);
 
     switch (res) {
       case (#ok _rec) { { canister_id = cid; registered = true; error = null } };
@@ -156,15 +156,6 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
         };
       };
     };
-  };
-
-  func operation() : async () {
-    Debug.print("Operation balance: " # debug_show (Cycles.balance()));
-    Debug.print("Operation available: " # debug_show (Cycles.available()));
-    let obtained = Cycles.accept<system>(_defaultCycles);
-    Debug.print("Operation obtained: " # debug_show (obtained));
-    Debug.print("Operation balance: " # debug_show (Cycles.balance()));
-    Debug.print("Operation available: " # debug_show (Cycles.available()));
   };
 
   // ===== CREATE PGC1 CANISTER =====
@@ -185,7 +176,6 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
 
     // 1) Create PGC1 canister with cycles
     Cycles.add<system>(cycles_amount);
-    await operation();
 
     // 🔹 Panggil PGC1 dengan 7 argumen (termasuk tokenCanister)
     let pgc1_actor = await PGC1.PGC1(
@@ -197,6 +187,7 @@ shared ({ caller = owner }) persistent actor class PeridotFactory(
       args.meta.initMaxSupply,
       args.meta.initTokenCanister, // 🔹 Ini yang baru!
       Principal.fromText(Core.PeridotAccount),
+      args.caller,
     );
     let canister_id = Principal.fromActor(pgc1_actor);
 

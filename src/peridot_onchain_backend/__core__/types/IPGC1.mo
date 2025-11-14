@@ -22,7 +22,14 @@ module IPGC1 {
     version : Text;
     sizeBytes : Nat64;
     checksum : Blob; // bytes32 ≈ 32-byte Blob
+    storage : StorageRef;
     createdAt : Timestamp; // timestamp in nanoseconds
+  };
+
+  public type StorageRef = {
+    #s3 : { bucket : Text; basePath : Text };
+    #url : { url : Text };
+    #ipfs : { cid : Text; path : Text };
   };
 
   public type Hardware = {

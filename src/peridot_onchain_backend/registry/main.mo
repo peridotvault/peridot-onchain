@@ -360,6 +360,53 @@ persistent actor PeridotRegistry {
     };
   };
 
+  public func redeem_voucher_for(
+    developer : Principal,
+    code : Text,
+    createGameRecord : GRT.CreateGameRecord,
+  ) : async ApiResponse<GameRecordType> {
+
+    // 1️⃣ Cek apakah voucher aktif
+    if (activeVouchers.get(code) == null) {
+      return #err(#NotFound("Invalid or expired voucher"));
+    };
+
+    // 2️⃣ Verifikasi caller adalah owner PGC1 SEBELUM hapus voucher
+    let pgc1 : actor {
+      getOwner : () -> async Principal;
+    } = actor (Principal.toText(createGameRecord.canister_id));
+
+    ignore activeVouchers.remove(code);
+    let owner = try {
+      await pgc1.getOwner();
+    } catch (_) {
+      activeVouchers.put(code, ());
+      return #err(#ValidationError("Failed to verify canister ownership"));
+    };
+
+    if (owner != developer) {
+      return #err(#NotAuthorized("Developer must be PGC1 owner"));
+    };
+
+    // 3️⃣ Register game (jika gagal, voucher tidak dihapus)
+    let registerResult = await GameRecordServices.register_game(
+      gameRecords,
+      developer,
+      createGameRecord,
+    );
+
+    // 4️⃣ HANYA hapus voucher jika registrasi berhasil
+    switch (registerResult) {
+      case (#ok gameRecord) {
+        #ok(gameRecord);
+      };
+      case (#err e) {
+        // Voucher tetap valid jika registrasi gagal
+        #err(e);
+      };
+    };
+  };
+
   // 🔹 Revoke/delete voucher (governor OR admin)
   public shared ({ caller }) func revoke_voucher(code : Text) : async ApiResponse<Bool> {
     if (not hasVoucherAuthority(caller)) {
